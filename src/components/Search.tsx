@@ -5,8 +5,8 @@ import { API_BASE_URL } from '../config';
 import type { Film } from '../types';
 
 interface SearchProps {
-  user: any;
   onAddFilm: (film: Film) => void;
+  // user больше не передаём, так как он не используется
 }
 
 interface SearchResponse {
@@ -16,7 +16,7 @@ interface SearchResponse {
   pages: number;
 }
 
-export default function Search({ user, onAddFilm }: SearchProps) {
+export default function Search({ onAddFilm }: SearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Film[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,6 @@ export default function Search({ user, onAddFilm }: SearchProps) {
   const [totalPages, setTotalPages] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
-  // Функция поиска
   const searchFilms = async (searchQuery: string, pageNum: number = 1, append: boolean = false) => {
     if (!searchQuery.trim()) {
       setResults([]);
@@ -40,8 +39,8 @@ export default function Search({ user, onAddFilm }: SearchProps) {
         params: {
           query: searchQuery,
           limit: 10,
-          page: pageNum
-        }
+          page: pageNum,
+        },
       });
 
       const newFilms = response.data.films;
@@ -49,7 +48,7 @@ export default function Search({ user, onAddFilm }: SearchProps) {
       setHasMore(response.data.page < response.data.pages);
 
       if (append) {
-        setResults(prev => [...prev, ...newFilms]);
+        setResults((prev) => [...prev, ...newFilms]);
       } else {
         setResults(newFilms);
         setPage(1);
@@ -62,7 +61,6 @@ export default function Search({ user, onAddFilm }: SearchProps) {
     }
   };
 
-  // Debounced поиск (ждём 500мс после остановки ввода)
   const debouncedSearch = useCallback(
     debounce((value: string) => {
       if (value.trim()) {
@@ -74,21 +72,18 @@ export default function Search({ user, onAddFilm }: SearchProps) {
     []
   );
 
-  // Обработчик изменения текста
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
     debouncedSearch(value);
   };
 
-  // Ручной поиск по кнопке
   const handleSearchClick = () => {
     if (query.trim()) {
       searchFilms(query);
     }
   };
 
-  // Загрузка следующей страницы
   const loadMore = () => {
     if (hasMore && !loading) {
       const nextPage = page + 1;
@@ -97,7 +92,6 @@ export default function Search({ user, onAddFilm }: SearchProps) {
     }
   };
 
-  // Очистка при размонтировании
   useEffect(() => {
     return () => {
       debouncedSearch.cancel();
@@ -107,8 +101,7 @@ export default function Search({ user, onAddFilm }: SearchProps) {
   return (
     <div style={{ padding: '10px' }}>
       <h2>Поиск фильмов</h2>
-      
-      {/* Поле поиска */}
+
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         <input
           type="text"
@@ -120,7 +113,7 @@ export default function Search({ user, onAddFilm }: SearchProps) {
             padding: '10px',
             borderRadius: '6px',
             border: '1px solid #ccc',
-            fontSize: '16px'
+            fontSize: '16px',
           }}
         />
         <button
@@ -132,27 +125,23 @@ export default function Search({ user, onAddFilm }: SearchProps) {
             color: 'white',
             border: 'none',
             borderRadius: '6px',
-            cursor: loading ? 'wait' : 'pointer'
+            cursor: loading ? 'wait' : 'pointer',
           }}
         >
           {loading ? 'Поиск...' : 'Найти'}
         </button>
       </div>
 
-      {/* Ошибка */}
       {error && (
-        <div style={{ color: 'red', marginBottom: '10px' }}>
-          {error}
-        </div>
+        <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>
       )}
 
-      {/* Результаты */}
       {results.length > 0 && (
         <>
           <div style={{ marginBottom: '10px', color: '#666' }}>
             Найдено фильмов: {results.length}
           </div>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {results.map((film) => (
               <div
@@ -164,10 +153,9 @@ export default function Search({ user, onAddFilm }: SearchProps) {
                   border: '1px solid #eee',
                   borderRadius: '8px',
                   backgroundColor: 'white',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 }}
               >
-                {/* Постер */}
                 {film.poster ? (
                   <img
                     src={film.poster}
@@ -176,25 +164,26 @@ export default function Search({ user, onAddFilm }: SearchProps) {
                       width: '60px',
                       height: '90px',
                       objectFit: 'cover',
-                      borderRadius: '4px'
+                      borderRadius: '4px',
                     }}
                   />
                 ) : (
-                  <div style={{
-                    width: '60px',
-                    height: '90px',
-                    backgroundColor: '#f0f0f0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '12px',
-                    color: '#999'
-                  }}>
+                  <div
+                    style={{
+                      width: '60px',
+                      height: '90px',
+                      backgroundColor: '#f0f0f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      color: '#999',
+                    }}
+                  >
                     Нет постера
                   </div>
                 )}
 
-                {/* Информация */}
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
                     {film.title} {film.year ? `(${film.year})` : ''}
@@ -211,7 +200,6 @@ export default function Search({ user, onAddFilm }: SearchProps) {
                   )}
                 </div>
 
-                {/* Кнопка добавления */}
                 <button
                   onClick={() => onAddFilm(film)}
                   style={{
@@ -221,7 +209,7 @@ export default function Search({ user, onAddFilm }: SearchProps) {
                     border: 'none',
                     borderRadius: '4px',
                     cursor: 'pointer',
-                    alignSelf: 'center'
+                    alignSelf: 'center',
                   }}
                 >
                   Добавить
@@ -230,7 +218,6 @@ export default function Search({ user, onAddFilm }: SearchProps) {
             ))}
           </div>
 
-          {/* Кнопка "Загрузить ещё" */}
           {hasMore && (
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
               <button
@@ -241,7 +228,7 @@ export default function Search({ user, onAddFilm }: SearchProps) {
                   backgroundColor: '#f0f0f0',
                   border: '1px solid #ccc',
                   borderRadius: '4px',
-                  cursor: loading ? 'wait' : 'pointer'
+                  cursor: loading ? 'wait' : 'pointer',
                 }}
               >
                 {loading ? 'Загрузка...' : 'Загрузить ещё'}
@@ -251,7 +238,6 @@ export default function Search({ user, onAddFilm }: SearchProps) {
         </>
       )}
 
-      {/* Пустое состояние */}
       {!loading && query && results.length === 0 && !error && (
         <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
           Ничего не найдено
