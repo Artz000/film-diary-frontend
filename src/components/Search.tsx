@@ -42,8 +42,15 @@ export default function Search({ onAddFilm }: SearchProps) {
         },
       });
 
-      const newFilms = response.data.films;
-      setTotalPages(response.data.pages);
+      // Проверяем, что response.data.films существует и является массивом
+      const newFilms = response.data?.films;
+      if (!Array.isArray(newFilms)) {
+        console.error('Search response is missing films array:', response.data);
+        setError('Неверный формат ответа от сервера');
+        return;
+      }
+
+      setTotalPages(response.data.pages || 1);
       setHasMore(response.data.page < response.data.pages);
 
       if (append) {
