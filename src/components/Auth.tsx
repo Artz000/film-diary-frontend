@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import WebApp from '@twa-dev/sdk';
 import { API_BASE_URL } from '../config';
 
 interface AuthProps {
@@ -12,22 +13,18 @@ export default function Auth({ onAuth }: AuthProps) {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      // Проверяем, есть ли Telegram WebApp (работаем в Telegram или нет)
-      const telegram = (window as any).Telegram?.WebApp;
-      let initData = '';
+      // Получаем initData из Telegram WebApp
+      const initData = WebApp.initData;
 
-      if (telegram) {
-        // Мы внутри Telegram Mini App
-        initData = telegram.initData;
-        telegram.ready(); // сообщаем Telegram, что приложение готово
-        telegram.expand(); // разворачиваем на весь экран
-      } else {
-        // Локальная разработка — используем тестовые данные
-        console.log('Запуск вне Telegram, использую тестовые данные');
-        initData = 'test_init_data';
+      // Если приложение открыто не в Telegram (для теста), можно использовать заглушку
+      if (!initData) {
+        console.warn('Not in Telegram, using mock data');
+        // Для локального тестирования можно вернуть тестового пользователя
+        onAuth({ id: 123, firstName: 'Тест', lastName: '', username: 'test' });
+        setLoading(false);
+        return;
       }
 
-      // Отправляем запрос на бэкенд
       const response = await axios.post(`${API_BASE_URL}/api/auth`, { initData });
       onAuth(response.data.user);
     } catch (error) {
