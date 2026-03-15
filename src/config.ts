@@ -1,1 +1,1 @@
-export const API_BASE_URL = 'https://artz000-film-diary-backend-fc56.tw1c.net';
+export const API_BASE_URL = 'https://artz000-film-diary-backend-fc56.twc1.net';
