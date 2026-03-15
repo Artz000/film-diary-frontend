@@ -6,7 +6,8 @@ import type { Film } from '../types';
 
 interface SearchProps {
   onAddFilm: (film: Film) => void;
-  // user больше не нужен — удалили
+  // _user не используется, но оставим с подчёркиванием, чтобы TS не ругался
+  _user?: any; // добавили опционально, можно не передавать
 }
 
 interface SearchResponse {
@@ -22,7 +23,7 @@ export default function Search({ onAddFilm }: SearchProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [, setTotalPages] = useState(1); // если не используем, можно так
+  const [_totalPages, setTotalPages] = useState(1); // подчёркивание в начале имени
   const [hasMore, setHasMore] = useState(false);
 
   const searchFilms = async (searchQuery: string, pageNum: number = 1, append: boolean = false) => {
