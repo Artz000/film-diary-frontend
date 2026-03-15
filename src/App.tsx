@@ -53,7 +53,7 @@ function App() {
 
       {/* Контент страницы */}
       {currentPage === 'feed' && <Feed user={user} />}
-      {currentPage === 'search' && <Search user={user} onAddFilm={handleAddFilm} />}
+      {currentPage === 'search' && <Search onAddFilm={handleAddFilm} />}
       {currentPage === 'myfilms' && <MyFilms user={user} />}
 
       {/* Модалка добавления рецензии */}
