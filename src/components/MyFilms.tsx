@@ -49,33 +49,111 @@ export default function MyFilms({ user }: MyFilmsProps) {
     }
   }, [user, activeTab]);
 
-  if (loading) return <div>Загрузка...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  // Функция для отображения звёзд
+  const renderStars = (rating: number) => {
+    return '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
+  };
+
+  if (loading) return <div style={{ textAlign: 'center', padding: '20px' }}>Загрузка...</div>;
+  if (error) return <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>{error}</div>;
 
   return (
-    <div>
+    <div style={{ padding: '10px' }}>
       <h2>Мои фильмы</h2>
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <button onClick={() => setActiveTab('watched')}>Просмотрено</button>
-        <button onClick={() => setActiveTab('want')}>Хочу посмотреть</button>
-        <button onClick={() => setActiveTab('favorite')}>Любимые</button>
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
+        <button
+          onClick={() => setActiveTab('watched')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: activeTab === 'watched' ? '#0088cc' : '#f0f0f0',
+            color: activeTab === 'watched' ? 'white' : '#333',
+            border: 'none',
+            borderRadius: '20px',
+            cursor: 'pointer',
+            fontWeight: activeTab === 'watched' ? 'bold' : 'normal',
+          }}
+        >
+          Просмотрено
+        </button>
+        <button
+          onClick={() => setActiveTab('want')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: activeTab === 'want' ? '#0088cc' : '#f0f0f0',
+            color: activeTab === 'want' ? 'white' : '#333',
+            border: 'none',
+            borderRadius: '20px',
+            cursor: 'pointer',
+          }}
+        >
+          Хочу посмотреть
+        </button>
+        <button
+          onClick={() => setActiveTab('favorite')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: activeTab === 'favorite' ? '#0088cc' : '#f0f0f0',
+            color: activeTab === 'favorite' ? 'white' : '#333',
+            border: 'none',
+            borderRadius: '20px',
+            cursor: 'pointer',
+          }}
+        >
+          Любимые
+        </button>
       </div>
 
       {films.length === 0 ? (
-        <p>Нет фильмов в этой категории</p>
+        <p style={{ textAlign: 'center', color: '#666' }}>Нет фильмов в этой категории</p>
       ) : (
-        <div>
+        <div style={{ display: 'grid', gap: '15px' }}>
           {films.map((film) => (
-            <div key={film.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', background: 'white', padding: '8px', borderRadius: '6px' }}>
+            <div
+              key={film.id}
+              style={{
+                display: 'flex',
+                gap: '15px',
+                padding: '15px',
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              }}
+            >
               {film.poster ? (
-                <img src={film.poster} alt={film.title} width="50" style={{ objectFit: 'cover', borderRadius: '4px' }} />
+                <img
+                  src={film.poster}
+                  alt={film.title}
+                  style={{ width: '70px', height: '105px', objectFit: 'cover', borderRadius: '8px' }}
+                />
               ) : (
-                <div style={{ width: '50px', height: '75px', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#999' }}>нет</div>
+                <div
+                  style={{
+                    width: '70px',
+                    height: '105px',
+                    backgroundColor: '#f0f0f0',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    color: '#999',
+                  }}
+                >
+                  нет фото
+                </div>
               )}
               <div style={{ flex: 1 }}>
-                <strong>{film.title}</strong>
-                {film.rating && <span> — {film.rating} ⭐</span>}
-                {film.reviewText && <p style={{ fontSize: '12px', color: '#666' }}>{film.reviewText}</p>}
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>{film.title}</h3>
+                {film.rating && (
+                  <div style={{ marginBottom: '6px', fontSize: '16px' }}>
+                    {renderStars(film.rating)}
+                  </div>
+                )}
+                {film.reviewText && (
+                  <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#555', fontStyle: 'italic' }}>
+                    {film.reviewText}
+                  </p>
+                )}
               </div>
             </div>
           ))}

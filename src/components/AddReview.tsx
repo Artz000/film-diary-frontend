@@ -4,19 +4,19 @@ import { API_BASE_URL } from '../config';
 import type { Film } from '../types';
 
 interface AddReviewProps {
-  film: Film;                       // фильм, который добавляем
-  onSave: () => void;               // вызывается после успешного сохранения
-  onCancel: () => void;             // вызывается при отмене
+  film: Film;
+  onSave: () => void;
+  onCancel: () => void;
 }
 
 export default function AddReview({ film, onSave, onCancel }: AddReviewProps) {
   const [status, setStatus] = useState<'watched' | 'want' | 'favorite'>('watched');
-  const [rating, setRating] = useState<number>(5);
+  const [rating, setRating] = useState(0); // 0-5
+  const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Получаем пользователя из localStorage (сохраняется после авторизации)
   const user = JSON.parse(localStorage.getItem('filmdiary_user') || '{}');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,16 +32,12 @@ export default function AddReview({ film, onSave, onCancel }: AddReviewProps) {
           title: film.title,
           posterPath: film.poster,
           status,
-          rating,
+          rating: status === 'watched' ? rating : null,
           reviewText,
         },
-        {
-          headers: {
-            'user-id': user.id, // передаём ID пользователя в заголовке
-          },
-        }
+        { headers: { 'user-id': user.id } }
       );
-      onSave(); // закрываем модалку и обновляем список
+      onSave();
     } catch (err) {
       console.error('Ошибка при сохранении:', err);
       setError('Не удалось сохранить рецензию. Попробуйте ещё раз.');
@@ -51,59 +47,40 @@ export default function AddReview({ film, onSave, onCancel }: AddReviewProps) {
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000,
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: 'white',
-          padding: '20px',
-          borderRadius: '10px',
-          width: '350px',
-          maxWidth: '90%',
-        }}
-      >
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '20px',
+        borderRadius: '12px',
+        width: '350px',
+        maxWidth: '90%',
+      }}>
         <h3 style={{ marginTop: 0 }}>{film.title}</h3>
 
         {error && (
-          <div
-            style={{
-              backgroundColor: '#ffebee',
-              color: '#c62828',
-              padding: '8px',
-              borderRadius: '4px',
-              marginBottom: '10px',
-            }}
-          >
+          <div style={{ backgroundColor: '#ffebee', color: '#c62828', padding: '10px', borderRadius: '6px', marginBottom: '15px' }}>
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px' }}>
-              Статус:
-            </label>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Статус:</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as any)}
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
+              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
             >
               <option value="watched">Просмотрено</option>
               <option value="want">Хочу посмотреть</option>
@@ -111,56 +88,49 @@ export default function AddReview({ film, onSave, onCancel }: AddReviewProps) {
             </select>
           </div>
 
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px' }}>
-              Оценка (1–5):
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="5"
-              value={rating}
-              onChange={(e) => setRating(Number(e.target.value))}
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-              required={status === 'watched'} // оценка обязательна только для просмотренных
-            />
-          </div>
+          {status === 'watched' && (
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Оценка:</label>
+              <div style={{ display: 'flex', gap: '5px', fontSize: '30px', cursor: 'pointer' }}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span
+                    key={star}
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    style={{ color: star <= (hoverRating || rating) ? '#f5a623' : '#ccc' }}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+              <input type="hidden" value={rating} required={status === 'watched'} />
+            </div>
+          )}
 
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px' }}>
-              Рецензия (необязательно):
-            </label>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Рецензия (необязательно):</label>
             <textarea
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
               rows={4}
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                resize: 'vertical',
-              }}
+              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc', resize: 'vertical' }}
+              placeholder="Поделитесь впечатлениями..."
             />
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (status === 'watched' && rating === 0)}
               style={{
                 flex: 1,
                 padding: '10px',
-                backgroundColor: '#0088cc',
+                backgroundColor: (loading || (status === 'watched' && rating === 0)) ? '#ccc' : '#0088cc',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
-                cursor: loading ? 'wait' : 'pointer',
+                borderRadius: '6px',
+                cursor: (loading || (status === 'watched' && rating === 0)) ? 'not-allowed' : 'pointer',
               }}
             >
               {loading ? 'Сохранение...' : 'Сохранить'}
@@ -168,16 +138,7 @@ export default function AddReview({ film, onSave, onCancel }: AddReviewProps) {
             <button
               type="button"
               onClick={onCancel}
-              disabled={loading}
-              style={{
-                flex: 1,
-                padding: '10px',
-                backgroundColor: '#ccc',
-                color: '#000',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: loading ? 'wait' : 'pointer',
-              }}
+              style={{ flex: 1, padding: '10px', backgroundColor: '#ccc', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
             >
               Отмена
             </button>
