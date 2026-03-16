@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../config';
 interface FilmItem {
   id: number;
   title: string;
+  year?: string;          // год из фильма
   poster: string;
   status: 'watched' | 'want' | 'favorite';
   rating?: number;
@@ -48,11 +49,6 @@ export default function MyFilms({ user }: MyFilmsProps) {
       fetchFilms();
     }
   }, [user, activeTab]);
-
-  // Функция для отображения звёзд
-  const renderStars = (rating: number) => {
-    return '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
-  };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '20px' }}>Загрузка...</div>;
   if (error) return <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>{error}</div>;
@@ -143,10 +139,12 @@ export default function MyFilms({ user }: MyFilmsProps) {
                 </div>
               )}
               <div style={{ flex: 1 }}>
-                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>{film.title}</h3>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>
+                  {film.title} {film.year ? `(${film.year})` : ''}
+                </h3>
                 {film.rating && (
-                  <div style={{ marginBottom: '6px', fontSize: '16px' }}>
-                    {renderStars(film.rating)}
+                  <div style={{ marginBottom: '6px', fontSize: '16px', color: '#f5a623' }}>
+                    {film.rating} ⭐
                   </div>
                 )}
                 {film.reviewText && (
