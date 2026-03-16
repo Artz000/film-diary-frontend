@@ -35,14 +35,9 @@ export default function Search({ onAddFilm }: SearchProps) {
 
     try {
       const response = await axios.get<SearchResponse>(`${API_BASE_URL}/api/kinopoisk/search`, {
-        params: {
-          query: searchQuery,
-          limit: 10,
-          page: pageNum,
-        },
+        params: { query: searchQuery, limit: 10, page: pageNum },
       });
 
-      // Проверяем, что response.data.films существует и является массивом
       const newFilms = response.data?.films;
       if (!Array.isArray(newFilms)) {
         console.error('Search response is missing films array:', response.data);
@@ -107,20 +102,13 @@ export default function Search({ onAddFilm }: SearchProps) {
   return (
     <div style={{ padding: '10px' }}>
       <h2>Поиск фильмов</h2>
-
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         <input
           type="text"
           value={query}
           onChange={handleInputChange}
           placeholder="Введите название фильма..."
-          style={{
-            flex: 1,
-            padding: '10px',
-            borderRadius: '6px',
-            border: '1px solid #ccc',
-            fontSize: '16px',
-          }}
+          style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '16px' }}
         />
         <button
           onClick={handleSearchClick}
@@ -138,16 +126,11 @@ export default function Search({ onAddFilm }: SearchProps) {
         </button>
       </div>
 
-      {error && (
-        <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>
-      )}
+      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
 
       {results.length > 0 && (
         <>
-          <div style={{ marginBottom: '10px', color: '#666' }}>
-            Найдено фильмов: {results.length}
-          </div>
-
+          <div style={{ marginBottom: '10px', color: '#666' }}>Найдено фильмов: {results.length}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {results.map((film) => (
               <div
@@ -166,12 +149,7 @@ export default function Search({ onAddFilm }: SearchProps) {
                   <img
                     src={film.poster}
                     alt={film.title}
-                    style={{
-                      width: '60px',
-                      height: '90px',
-                      objectFit: 'cover',
-                      borderRadius: '4px',
-                    }}
+                    style={{ width: '60px', height: '90px', objectFit: 'cover', borderRadius: '4px' }}
                   />
                 ) : (
                   <div
@@ -186,26 +164,24 @@ export default function Search({ onAddFilm }: SearchProps) {
                       color: '#999',
                     }}
                   >
-                    Нет постера
+                    нет фото
                   </div>
                 )}
-
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
                     {film.title} {film.year ? `(${film.year})` : ''}
                   </div>
-                  {film.rating && (
-                    <div style={{ fontSize: '14px', color: '#f5a623' }}>
-                      Рейтинг: {film.rating.toFixed(1)} ⭐
+                  {film.rating ? (
+                    <div style={{ fontSize: '14px', color: '#f5a623', marginTop: '4px' }}>
+                      Рейтинг: {film.rating.toFixed(1)} ★
                     </div>
-                  )}
+                  ) : null}
                   {film.genres && film.genres.length > 0 && (
                     <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
                       {film.genres.slice(0, 3).join(' • ')}
                     </div>
                   )}
                 </div>
-
                 <button
                   onClick={() => onAddFilm(film)}
                   style={{
@@ -245,9 +221,7 @@ export default function Search({ onAddFilm }: SearchProps) {
       )}
 
       {!loading && query && results.length === 0 && !error && (
-        <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
-          Ничего не найдено
-        </div>
+        <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>Ничего не найдено</div>
       )}
     </div>
   );

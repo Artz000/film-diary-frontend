@@ -7,6 +7,7 @@ interface FilmItem {
   title?: string;
   filmTitle?: string;
   name?: string;
+  year?: string | number; // добавим год
   poster?: string;
   status: 'watched' | 'want' | 'favorite';
   rating?: number;
@@ -51,12 +52,14 @@ export default function MyFilms({ user }: MyFilmsProps) {
     }
   }, [user, activeTab]);
 
-  const renderStars = (rating: number) => {
-    return '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
-  };
-
+  // Функция для получения названия с fallback
   const getTitle = (film: FilmItem): string => {
     return film.title || film.filmTitle || film.name || 'Без названия';
+  };
+
+  // Функция для отображения звёзд
+  const renderStars = (rating: number) => {
+    return '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '20px' }}>Загрузка...</div>;
@@ -112,56 +115,63 @@ export default function MyFilms({ user }: MyFilmsProps) {
         <p style={{ textAlign: 'center', color: '#666' }}>Нет фильмов в этой категории</p>
       ) : (
         <div style={{ display: 'grid', gap: '15px' }}>
-          {films.map((film) => (
-            <div
-              key={film.id}
-              style={{
-                display: 'flex',
-                gap: '15px',
-                padding: '15px',
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              }}
-            >
-              {film.poster ? (
-                <img
-                  src={film.poster}
-                  alt={getTitle(film)}
-                  style={{ width: '70px', height: '105px', objectFit: 'cover', borderRadius: '8px' }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '70px',
-                    height: '105px',
-                    backgroundColor: '#f0f0f0',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '12px',
-                    color: '#999',
-                  }}
-                >
-                  нет фото
-                </div>
-              )}
-              <div style={{ flex: 1 }}>
-                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>{getTitle(film)}</h3>
-                {film.rating && (
-                  <div style={{ marginBottom: '6px', fontSize: '16px' }}>
-                    {renderStars(film.rating)}
+          {films.map((film) => {
+            const title = getTitle(film);
+            const year = film.year ? ` (${film.year})` : '';
+            return (
+              <div
+                key={film.id}
+                style={{
+                  display: 'flex',
+                  gap: '15px',
+                  padding: '15px',
+                  backgroundColor: 'white',
+                  borderRadius: '12px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                }}
+              >
+                {film.poster ? (
+                  <img
+                    src={film.poster}
+                    alt={title}
+                    style={{ width: '70px', height: '105px', objectFit: 'cover', borderRadius: '8px' }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '70px',
+                      height: '105px',
+                      backgroundColor: '#f0f0f0',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      color: '#999',
+                    }}
+                  >
+                    нет фото
                   </div>
                 )}
-                {film.reviewText && (
-                  <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#555', fontStyle: 'italic' }}>
-                    {film.reviewText}
-                  </p>
-                )}
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>
+                    {title}{year}
+                  </h3>
+                  {film.rating ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '16px' }}>{renderStars(film.rating)}</span>
+                      <span style={{ fontSize: '14px', color: '#666' }}>{film.rating.toFixed(1)}</span>
+                    </div>
+                  ) : null}
+                  {film.reviewText && (
+                    <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#555', fontStyle: 'italic' }}>
+                      {film.reviewText}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
