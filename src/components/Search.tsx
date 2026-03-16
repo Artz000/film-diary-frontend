@@ -35,7 +35,11 @@ export default function Search({ onAddFilm }: SearchProps) {
 
     try {
       const response = await axios.get<SearchResponse>(`${API_BASE_URL}/api/kinopoisk/search`, {
-        params: { query: searchQuery, limit: 10, page: pageNum },
+        params: {
+          query: searchQuery,
+          limit: 10,
+          page: pageNum,
+        },
       });
 
       const newFilms = response.data?.films;
@@ -100,15 +104,23 @@ export default function Search({ onAddFilm }: SearchProps) {
   }, [debouncedSearch]);
 
   return (
-    <div style={{ padding: '10px' }}>
+    <div style={{ padding: '10px', color: '#333' }}>
       <h2>Поиск фильмов</h2>
+
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         <input
           type="text"
           value={query}
           onChange={handleInputChange}
           placeholder="Введите название фильма..."
-          style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '16px' }}
+          style={{
+            flex: 1,
+            padding: '10px',
+            borderRadius: '6px',
+            border: '1px solid #ccc',
+            fontSize: '16px',
+            color: '#000',
+          }}
         />
         <button
           onClick={handleSearchClick}
@@ -126,11 +138,16 @@ export default function Search({ onAddFilm }: SearchProps) {
         </button>
       </div>
 
-      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+      {error && (
+        <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>
+      )}
 
       {results.length > 0 && (
         <>
-          <div style={{ marginBottom: '10px', color: '#666' }}>Найдено фильмов: {results.length}</div>
+          <div style={{ marginBottom: '10px', color: '#666' }}>
+            Найдено фильмов: {results.length}
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {results.map((film) => (
               <div
@@ -143,13 +160,19 @@ export default function Search({ onAddFilm }: SearchProps) {
                   borderRadius: '8px',
                   backgroundColor: 'white',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  color: '#333',
                 }}
               >
                 {film.poster ? (
                   <img
                     src={film.poster}
                     alt={film.title}
-                    style={{ width: '60px', height: '90px', objectFit: 'cover', borderRadius: '4px' }}
+                    style={{
+                      width: '60px',
+                      height: '90px',
+                      objectFit: 'cover',
+                      borderRadius: '4px',
+                    }}
                   />
                 ) : (
                   <div
@@ -164,24 +187,27 @@ export default function Search({ onAddFilm }: SearchProps) {
                       color: '#999',
                     }}
                   >
-                    нет фото
+                    Нет постера
                   </div>
                 )}
+
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
-                    {film.title} {film.year ? `(${film.year})` : ''}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px', flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#000' }}>{film.title}</span>
+                    {film.year && <span style={{ fontSize: '14px', color: '#666' }}>({film.year})</span>}
                   </div>
-                  {film.rating ? (
-                    <div style={{ fontSize: '14px', color: '#f5a623', marginTop: '4px' }}>
-                      Рейтинг: {film.rating.toFixed(1)} ★
+                  {film.rating && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                      <span style={{ fontSize: '14px', color: '#f5a623' }}>Рейтинг: {film.rating.toFixed(1)} ★</span>
                     </div>
-                  ) : null}
+                  )}
                   {film.genres && film.genres.length > 0 && (
                     <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
                       {film.genres.slice(0, 3).join(' • ')}
                     </div>
                   )}
                 </div>
+
                 <button
                   onClick={() => onAddFilm(film)}
                   style={{
@@ -221,7 +247,9 @@ export default function Search({ onAddFilm }: SearchProps) {
       )}
 
       {!loading && query && results.length === 0 && !error && (
-        <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>Ничего не найдено</div>
+        <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
+          Ничего не найдено
+        </div>
       )}
     </div>
   );
