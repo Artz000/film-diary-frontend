@@ -4,9 +4,10 @@ import { API_BASE_URL } from '../config';
 
 interface FilmItem {
   id: number;
-  title: string;
-  year?: string;          // год из фильма
-  poster: string;
+  title?: string;
+  filmTitle?: string;
+  name?: string;
+  poster?: string;
   status: 'watched' | 'want' | 'favorite';
   rating?: number;
   reviewText?: string;
@@ -49,6 +50,14 @@ export default function MyFilms({ user }: MyFilmsProps) {
       fetchFilms();
     }
   }, [user, activeTab]);
+
+  const renderStars = (rating: number) => {
+    return '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
+  };
+
+  const getTitle = (film: FilmItem): string => {
+    return film.title || film.filmTitle || film.name || 'Без названия';
+  };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '20px' }}>Загрузка...</div>;
   if (error) return <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>{error}</div>;
@@ -118,7 +127,7 @@ export default function MyFilms({ user }: MyFilmsProps) {
               {film.poster ? (
                 <img
                   src={film.poster}
-                  alt={film.title}
+                  alt={getTitle(film)}
                   style={{ width: '70px', height: '105px', objectFit: 'cover', borderRadius: '8px' }}
                 />
               ) : (
@@ -139,12 +148,10 @@ export default function MyFilms({ user }: MyFilmsProps) {
                 </div>
               )}
               <div style={{ flex: 1 }}>
-                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>
-                  {film.title} {film.year ? `(${film.year})` : ''}
-                </h3>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>{getTitle(film)}</h3>
                 {film.rating && (
-                  <div style={{ marginBottom: '6px', fontSize: '16px', color: '#f5a623' }}>
-                    {film.rating} ⭐
+                  <div style={{ marginBottom: '6px', fontSize: '16px' }}>
+                    {renderStars(film.rating)}
                   </div>
                 )}
                 {film.reviewText && (
