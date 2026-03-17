@@ -17,10 +17,10 @@ interface FilmItem {
 
 interface MyFilmsProps {
   user: any;
-  onAddFilm?: (film: FilmItem) => void; // опционально, для передачи в AddReview
+  // onAddFilm удалён, так как не используется
 }
 
-export default function MyFilms({ user, onAddFilm }: MyFilmsProps) {
+export default function MyFilms({ user }: MyFilmsProps) {
   const [films, setFilms] = useState<FilmItem[]>([]);
   const [activeTab, setActiveTab] = useState<'watched' | 'want' | 'favorite'>('watched');
   const [loading, setLoading] = useState(true);
