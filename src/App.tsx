@@ -39,10 +39,10 @@ function App() {
     setSelectedFilm(null);
   };
 
-  if (loading) {
-    // Можно вернуть простой спиннер или просто null
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Загрузка...</div>;
-  }
+  // if (loading) {
+  //   // Можно вернуть простой спиннер или просто null
+  //   return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Загрузка...</div>;
+  // }
 
   if (!user) {
     return <Auth onAuth={handleAuth} />;
