@@ -44,20 +44,6 @@ export default function MyFilms({ user }: MyFilmsProps) {
     }
   }, [user, activeTab]);
 
-  const handleStatusChange = async (film: UserFilm, newStatus: 'watched' | 'want', rating?: number, reviewText?: string) => {
-    try {
-      await axios.patch(
-        `${API_BASE_URL}/api/films/${film.id}`,
-        { status: newStatus, rating, reviewText },
-        { headers: { 'user-id': user.id } }
-      );
-      fetchFilms(activeTab);
-    } catch (err) {
-      console.error('Error updating film status:', err);
-      alert('Не удалось обновить статус');
-    }
-  };
-
   const handleToggleFavorite = async (film: UserFilm) => {
     try {
       await axios.patch(
