@@ -1,81 +1,125 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
-import type { ReviewItem } from '../types';
 
-interface FeedProps {
-  user: any;
+interface FeedItem {
+  id: number;
+  userName: string;
+  filmTitle: string;
+  filmYear?: string;
+  filmGenres: string[];
+  rating?: number;
+  reviewText?: string;
+  createdAt: string;
+  likesCount: number;
+  likedByMe: boolean;
 }
 
-export default function Feed({ user }: FeedProps) {
-  const [reviews, setReviews] = useState<ReviewItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function Feed({ user }: { user: any }) {
+  const [items, setItems] = useState<FeedItem[]>([]);
+  const [sort, setSort] = useState<'date' | 'popular'>('date');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchFeed = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await axios.get(`${API_BASE_URL}/api/feed`, {
-          headers: { 'user-id': user.id }
-        });
-        if (Array.isArray(response.data)) {
-          setReviews(response.data);
-        } else {
-          console.error('Feed data is not an array:', response.data);
-          setError('Неверный формат данных от сервера');
-        }
-      } catch (err) {
-        console.error('Error fetching feed:', err);
-        setError('Не удалось загрузить ленту. Попробуйте позже.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user?.id) {
-      fetchFeed();
+  const fetchFeed = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/feed`, {
+        params: { sort, page, limit: 20 },
+        headers: { 'user-id': user.id },
+      });
+      setItems(res.data.data);
+      setTotalPages(res.data.totalPages);
+    } catch (err) {
+      console.error('Error fetching feed:', err);
+    } finally {
+      setLoading(false);
     }
-  }, [user]);
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   };
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '20px' }}>Загрузка ленты...</div>;
-  if (error) return <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>{error}</div>;
-  if (reviews.length === 0) return <div style={{ textAlign: 'center', padding: '20px' }}>Нет активности</div>;
+  useEffect(() => {
+    fetchFeed();
+  }, [sort, page]);
+
+  const handleLike = async (reviewId: number, liked: boolean) => {
+    try {
+      if (liked) {
+        await axios.delete(`${API_BASE_URL}/api/reviews/${reviewId}/like`, {
+          headers: { 'user-id': user.id },
+        });
+      } else {
+        await axios.post(`${API_BASE_URL}/api/reviews/${reviewId}/like`, null, {
+          headers: { 'user-id': user.id },
+        });
+      }
+      // Обновить список, чтобы изменился счётчик и состояние likedByMe
+      fetchFeed();
+    } catch (err) {
+      console.error('Error toggling like:', err);
+    }
+  };
 
   return (
     <div style={{ padding: '10px' }}>
-      <h2>Лента друзей</h2>
-      {reviews.map((rev) => (
-        <div key={rev.id} style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '10px', marginBottom: '10px', background: 'white' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <strong>{rev.userName}</strong>
-            <small>{formatDate(rev.createdAt)}</small>
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <button onClick={() => setSort('date')} style={{ fontWeight: sort === 'date' ? 'bold' : 'normal' }}>
+          По дате
+        </button>
+        <button onClick={() => setSort('popular')} style={{ fontWeight: sort === 'popular' ? 'bold' : 'normal' }}>
+          Популярные
+        </button>
+      </div>
+
+      {loading && <div>Загрузка...</div>}
+      {!loading && items.length === 0 && <div>Пока нет публикаций</div>}
+
+      {items.map((item) => (
+        <div key={item.id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '15px', marginBottom: '15px', background: 'white' }}>
+          <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
+            {item.userName} · {new Date(item.createdAt).toLocaleDateString()}
           </div>
-          <div style={{ marginTop: '5px' }}>
-            <strong>{rev.filmTitle}</strong> {rev.filmYear && <span>({rev.filmYear})</span>}
+          <h3 style={{ margin: '0 0 5px 0', color: '#000' }}>
+            {item.filmTitle} {item.filmYear && <span style={{ fontSize: '14px', color: '#666' }}>({item.filmYear})</span>}
+          </h3>
+          <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+            {item.filmGenres?.join(' · ')}
           </div>
-          {rev.filmGenres && rev.filmGenres.length > 0 && (
-            <div style={{ fontSize: '12px', color: '#666' }}>{rev.filmGenres.join(' • ')}</div>
+          {item.rating && (
+            <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#f5a623', marginBottom: '8px' }}>
+              Оценка: {item.rating}/5
+            </div>
           )}
-          <div style={{ marginTop: '8px' }}>
-            {rev.status === 'watched' ? (
-              <>
-                {rev.rating && <span style={{ color: '#f5a623' }}>{'⭐'.repeat(rev.rating)}</span>}
-                {rev.reviewText && <p style={{ margin: '5px 0', fontStyle: 'italic' }}>"{rev.reviewText}"</p>}
-                {rev.isFavorite && <span style={{ color: '#e53935', marginLeft: '5px' }}>❤️</span>}
-              </>
-            ) : (
-              <span style={{ color: '#0088cc' }}>Хочет посмотреть</span>
-            )}
+          {item.reviewText && (
+            <p style={{ fontSize: '14px', color: '#333', marginBottom: '10px', fontStyle: 'italic' }}>
+              {item.reviewText}
+            </p>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={() => handleLike(item.id, item.likedByMe)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '20px',
+                color: item.likedByMe ? 'red' : '#ccc',
+              }}
+            >
+              ❤️
+            </button>
+            <span>{item.likesCount}</span>
           </div>
         </div>
       ))}
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+          <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Назад</button>
+          <span>Стр. {page} из {totalPages}</span>
+          <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Вперёд</button>
+        </div>
+      )}
     </div>
   );
 }
