@@ -2,6 +2,20 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
+useEffect(() => {
+  console.log('🔍 Telegram object exists:', !!window.Telegram);
+  console.log('🔍 WebApp object exists:', !!window.Telegram?.WebApp);
+  console.log('🔍 initData exists:', !!window.Telegram?.WebApp?.initData);
+  console.log('🔍 initData length:', window.Telegram?.WebApp?.initData?.length);
+  
+  if (window.Telegram?.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+  } else {
+    console.error('❌ Telegram.WebApp не найден!');
+  }
+}, []);
+
 declare global {
   interface Window {
     Telegram?: {
