@@ -1,23 +1,27 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
-import type { Film } from '../types';
+import type { Film, UserFilm } from '../types';
 
 interface AddReviewProps {
-  film: Film;
+  film: Film | UserFilm; // может быть из поиска (Film) или из списка пользователя (UserFilm)
   onSave: () => void;
   onCancel: () => void;
 }
 
 export default function AddReview({ film, onSave, onCancel }: AddReviewProps) {
-  const [status, setStatus] = useState<'watched' | 'want' | 'favorite'>('watched');
-  const [rating, setRating] = useState(0); // 0-5
+  const [status, setStatus] = useState<'watched' | 'want'>(
+    (film as UserFilm).status === 'want' ? 'want' : 'watched'
+  );
+  const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [reviewText, setReviewText] = useState('');
+  const [reviewText, setReviewText] = useState((film as UserFilm).reviewText || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const user = JSON.parse(localStorage.getItem('filmdiary_user') || '{}');
+
+  const isUpdate = 'status' in film; // если есть status, значит это существующая рецензия
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,20 +29,34 @@ export default function AddReview({ film, onSave, onCancel }: AddReviewProps) {
     setError(null);
 
     try {
-      await axios.post(
-        `${API_BASE_URL}/api/films`,
-        {
-          tmdbId: film.id,
-          title: film.title,
-          posterPath: film.poster,
-          year: film.year,
-          genres: film.genres || [],
-          status,
-          rating: status === 'watched' ? rating : null,
-          reviewText,
-        },
-        { headers: { 'user-id': user.id } }
-      );
+      if (isUpdate) {
+        // Обновление существующей (PATCH)
+        await axios.patch(
+          `${API_BASE_URL}/api/films/${film.id}`,
+          {
+            status: 'watched',
+            rating: status === 'watched' ? rating : null,
+            reviewText,
+          },
+          { headers: { 'user-id': user.id } }
+        );
+      } else {
+        // Добавление новой (POST)
+        await axios.post(
+          `${API_BASE_URL}/api/films`,
+          {
+            tmdbId: film.id,
+            title: film.title,
+            posterPath: film.poster,
+            year: (film as Film).year,
+            genres: (film as Film).genres || [],
+            status,
+            rating: status === 'watched' ? rating : null,
+            reviewText,
+          },
+          { headers: { 'user-id': user.id } }
+        );
+      }
       onSave();
     } catch (err) {
       console.error('Ошибка при сохранении:', err);
@@ -77,17 +95,19 @@ export default function AddReview({ film, onSave, onCancel }: AddReviewProps) {
         )}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Статус:</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as 'watched' | 'want')}
-              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
-            >
-              <option value="watched">Просмотрено</option>
-              <option value="want">Хочу посмотреть</option>
-            </select>
-          </div>
+          {!isUpdate && (
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Статус:</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as 'watched' | 'want')}
+                style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
+              >
+                <option value="watched">Просмотрено</option>
+                <option value="want">Хочу посмотреть</option>
+              </select>
+            </div>
+          )}
 
           {status === 'watched' && (
             <div style={{ marginBottom: '20px' }}>

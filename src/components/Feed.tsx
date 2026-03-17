@@ -1,23 +1,14 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
-
-interface Review {
-  id: number;
-  userId: number;          // добавлено для фильтрации
-  userName: string;
-  filmTitle: string;
-  rating: number;
-  reviewText: string;
-  createdAt: string;
-}
+import type { ReviewItem } from '../types';
 
 interface FeedProps {
   user: any;
 }
 
 export default function Feed({ user }: FeedProps) {
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,9 +21,7 @@ export default function Feed({ user }: FeedProps) {
           headers: { 'user-id': user.id }
         });
         if (Array.isArray(response.data)) {
-          // Фильтруем рецензии, оставляя только чужие
-          const otherReviews = response.data.filter((rev: Review) => rev.userId !== user.id);
-          setReviews(otherReviews);
+          setReviews(response.data);
         } else {
           console.error('Feed data is not an array:', response.data);
           setError('Неверный формат данных от сервера');
@@ -50,21 +39,41 @@ export default function Feed({ user }: FeedProps) {
     }
   }, [user]);
 
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
+
   if (loading) return <div style={{ textAlign: 'center', padding: '20px' }}>Загрузка ленты...</div>;
   if (error) return <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>{error}</div>;
-  if (reviews.length === 0) return <div style={{ textAlign: 'center', color: '#666', padding: '20px' }}>Нет рецензий от друзей</div>;
+  if (reviews.length === 0) return <div style={{ textAlign: 'center', padding: '20px' }}>Нет активности</div>;
 
   return (
     <div style={{ padding: '10px' }}>
       <h2>Лента друзей</h2>
       {reviews.map((rev) => (
-        <div key={rev.id} style={{ border: '1px solid #ccc', borderRadius: '12px', padding: '15px', marginBottom: '15px', background: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-          <strong>{rev.userName}</strong> оценил(а) <strong>{rev.filmTitle}</strong>
-          <div style={{ margin: '8px 0', fontSize: '18px', color: '#f5a623' }}>
-            {rev.rating} ⭐
+        <div key={rev.id} style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '10px', marginBottom: '10px', background: 'white' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <strong>{rev.userName}</strong>
+            <small>{formatDate(rev.createdAt)}</small>
           </div>
-          {rev.reviewText && <p style={{ fontSize: '14px', color: '#333' }}>{rev.reviewText}</p>}
-          <small style={{ color: '#999' }}>{new Date(rev.createdAt).toLocaleDateString()}</small>
+          <div style={{ marginTop: '5px' }}>
+            <strong>{rev.filmTitle}</strong> {rev.filmYear && <span>({rev.filmYear})</span>}
+          </div>
+          {rev.filmGenres && rev.filmGenres.length > 0 && (
+            <div style={{ fontSize: '12px', color: '#666' }}>{rev.filmGenres.join(' • ')}</div>
+          )}
+          <div style={{ marginTop: '8px' }}>
+            {rev.status === 'watched' ? (
+              <>
+                {rev.rating && <span style={{ color: '#f5a623' }}>{'⭐'.repeat(rev.rating)}</span>}
+                {rev.reviewText && <p style={{ margin: '5px 0', fontStyle: 'italic' }}>"{rev.reviewText}"</p>}
+                {rev.isFavorite && <span style={{ color: '#e53935', marginLeft: '5px' }}>❤️</span>}
+              </>
+            ) : (
+              <span style={{ color: '#0088cc' }}>Хочет посмотреть</span>
+            )}
+          </div>
         </div>
       ))}
     </div>
