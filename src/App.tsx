@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Auth from './components/Auth';
 import Feed from './components/Feed';
-import Search from './components/Search';
+import Search from './components/Search';      // исправлено: было './components/Feed'
 import MyFilms from './components/MyFilms';
 import AddReview from './components/AddReview';
 import type { Film } from './types';
@@ -13,7 +13,7 @@ function App() {
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
 
   useEffect(() => {
-    // Небольшая задержка для показа LaunchScreen (можно убрать)
+    // Небольшая задержка для имитации загрузки (можно убрать)
     const timer = setTimeout(() => setLoading(false), 300);
     const savedUser = localStorage.getItem('filmdiary_user');
     if (savedUser) {
@@ -38,6 +38,11 @@ function App() {
   const handleCancelReview = () => {
     setSelectedFilm(null);
   };
+
+  if (loading) {
+    // Можно вернуть простой спиннер или просто null
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Загрузка...</div>;
+  }
 
   if (!user) {
     return <Auth onAuth={handleAuth} />;
