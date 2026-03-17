@@ -8,6 +8,7 @@ interface FeedItem {
   filmTitle: string;
   filmYear?: string;
   filmGenres: string[];
+  filmPoster?: string;
   rating?: number;
   reviewText?: string;
   createdAt: string;
@@ -53,7 +54,6 @@ export default function Feed({ user }: { user: any }) {
           headers: { 'user-id': user.id },
         });
       }
-      // Обновить список, чтобы изменился счётчик и состояние likedByMe
       fetchFeed();
     } catch (err) {
       console.error('Error toggling like:', err);
@@ -63,61 +63,147 @@ export default function Feed({ user }: { user: any }) {
   return (
     <div style={{ padding: '10px' }}>
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <button onClick={() => setSort('date')} style={{ fontWeight: sort === 'date' ? 'bold' : 'normal' }}>
+        <button
+          onClick={() => setSort('date')}
+          style={{
+            padding: '5px 10px',
+            backgroundColor: sort === 'date' ? '#0088cc' : '#f0f0f0',
+            color: sort === 'date' ? 'white' : '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
           По дате
         </button>
-        <button onClick={() => setSort('popular')} style={{ fontWeight: sort === 'popular' ? 'bold' : 'normal' }}>
+        <button
+          onClick={() => setSort('popular')}
+          style={{
+            padding: '5px 10px',
+            backgroundColor: sort === 'popular' ? '#0088cc' : '#f0f0f0',
+            color: sort === 'popular' ? 'white' : '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
           Популярные
         </button>
       </div>
 
-      {loading && <div>Загрузка...</div>}
-      {!loading && items.length === 0 && <div>Пока нет публикаций</div>}
+      {loading && <div style={{ textAlign: 'center', padding: '20px' }}>Загрузка...</div>}
+      {!loading && items.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Пока нет публикаций</div>
+      )}
 
       {items.map((item) => (
-        <div key={item.id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '15px', marginBottom: '15px', background: 'white' }}>
-          <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
-            {item.userName} · {new Date(item.createdAt).toLocaleDateString()}
-          </div>
-          <h3 style={{ margin: '0 0 5px 0', color: '#000' }}>
-            {item.filmTitle} {item.filmYear && <span style={{ fontSize: '14px', color: '#666' }}>({item.filmYear})</span>}
-          </h3>
-          <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
-            {item.filmGenres?.join(' · ')}
-          </div>
-          {item.rating && (
-            <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#f5a623', marginBottom: '8px' }}>
-              Оценка: {item.rating}/5
-            </div>
-          )}
-          {item.reviewText && (
-            <p style={{ fontSize: '14px', color: '#333', marginBottom: '10px', fontStyle: 'italic' }}>
-              {item.reviewText}
-            </p>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button
-              onClick={() => handleLike(item.id, item.likedByMe)}
+        <div
+          key={item.id}
+          style={{
+            display: 'flex',
+            gap: '15px',
+            border: '1px solid #eee',
+            borderRadius: '12px',
+            padding: '15px',
+            marginBottom: '15px',
+            background: 'white',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+          }}
+        >
+          {item.filmPoster ? (
+            <img
+              src={item.filmPoster}
+              alt={item.filmTitle}
+              style={{ width: '80px', height: '120px', objectFit: 'cover', borderRadius: '8px' }}
+            />
+          ) : (
+            <div
               style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '20px',
-                color: item.likedByMe ? 'red' : '#ccc',
+                width: '80px',
+                height: '120px',
+                backgroundColor: '#f0f0f0',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                color: '#999',
               }}
             >
-              ❤️
-            </button>
-            <span>{item.likesCount}</span>
+              нет фото
+            </div>
+          )}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>
+              {item.userName} · {new Date(item.createdAt).toLocaleDateString()}
+            </div>
+            <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', color: '#000' }}>
+              {item.filmTitle}{' '}
+              {item.filmYear && <span style={{ fontSize: '14px', color: '#666' }}>({item.filmYear})</span>}
+            </h3>
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+              {item.filmGenres?.join(' · ')}
+            </div>
+            {item.rating && (
+              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#f5a623', marginBottom: '8px' }}>
+                Оценка: {item.rating}/5
+              </div>
+            )}
+            {item.reviewText && (
+              <p style={{ fontSize: '14px', color: '#333', marginBottom: '10px', fontStyle: 'italic' }}>
+                {item.reviewText}
+              </p>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                onClick={() => handleLike(item.id, item.likedByMe)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  color: item.likedByMe ? '#e53935' : '#ccc',
+                }}
+              >
+                ❤️
+              </button>
+              <span style={{ color: '#333', fontWeight: 'bold' }}>{item.likesCount}</span>
+            </div>
           </div>
         </div>
       ))}
 
       {totalPages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
-          <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Назад</button>
-          <span>Стр. {page} из {totalPages}</span>
-          <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Вперёд</button>
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            style={{
+              padding: '5px 10px',
+              backgroundColor: '#f0f0f0',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: page === 1 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            Назад
+          </button>
+          <span style={{ padding: '5px 0' }}>
+            Стр. {page} из {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            style={{
+              padding: '5px 10px',
+              backgroundColor: '#f0f0f0',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: page === totalPages ? 'not-allowed' : 'pointer',
+            }}
+          >
+            Вперёд
+          </button>
         </div>
       )}
     </div>
