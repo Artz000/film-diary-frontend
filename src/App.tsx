@@ -7,15 +7,22 @@ import AddReview from './components/AddReview';
 import type { Film } from './types';
 
 function App() {
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState<'feed' | 'search' | 'myfilms'>('feed');
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
 
   useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 300);
     const savedUser = localStorage.getItem('filmdiary_user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error('Failed to parse user from localStorage', e);
+      }
     }
+    return () => clearTimeout(timer);
   }, []);
 
   const handleAuth = (userData: any) => {
@@ -29,12 +36,15 @@ function App() {
 
   const handleSaveReview = () => {
     setSelectedFilm(null);
-    // Можно обновить список фильмов, но пока просто закрываем модалку
   };
 
   const handleCancelReview = () => {
     setSelectedFilm(null);
   };
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Загрузка...</div>;
+  }
 
   if (!user) {
     return <Auth onAuth={handleAuth} />;
@@ -42,7 +52,7 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Контент с отступом снизу для закреплённого меню */}
+      {/* Основной контент с отступом снизу для меню */}
       <div style={{ flex: 1, paddingBottom: '70px' }}>
         {currentPage === 'feed' && <Feed user={user} />}
         {currentPage === 'search' && <Search onAddFilm={handleAddFilm} />}
