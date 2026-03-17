@@ -4,14 +4,13 @@ import Feed from './components/Feed';
 import Search from './components/Search';
 import MyFilms from './components/MyFilms';
 import AddReview from './components/AddReview';
-import type { Film } from './types'; // создадим позже
+import type { Film } from './types';
 
 function App() {
   const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState<'feed' | 'search' | 'myfilms'>('feed');
-  const [selectedFilm, setSelectedFilm] = useState<Film | null>(null); // для модалки
+  const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
 
-  // При загрузке проверяем, есть ли сохранённый пользователь
   useEffect(() => {
     const savedUser = localStorage.getItem('filmdiary_user');
     if (savedUser) {
@@ -30,8 +29,7 @@ function App() {
 
   const handleSaveReview = () => {
     setSelectedFilm(null);
-    // Можно показать уведомление или обновить список фильмов
-    alert('Рецензия добавлена (заглушка)');
+    // Можно обновить список фильмов, но пока просто закрываем модалку
   };
 
   const handleCancelReview = () => {
@@ -43,18 +41,74 @@ function App() {
   }
 
   return (
-    <div style={{ padding: '10px' }}>
-      {/* Нижнее меню */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <button onClick={() => setCurrentPage('feed')}>Лента</button>
-        <button onClick={() => setCurrentPage('search')}>Поиск</button>
-        <button onClick={() => setCurrentPage('myfilms')}>Мои фильмы</button>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Контент с отступом снизу для закреплённого меню */}
+      <div style={{ flex: 1, paddingBottom: '70px' }}>
+        {currentPage === 'feed' && <Feed user={user} />}
+        {currentPage === 'search' && <Search onAddFilm={handleAddFilm} />}
+        {currentPage === 'myfilms' && <MyFilms user={user} />}
       </div>
 
-      {/* Контент страницы */}
-      {currentPage === 'feed' && <Feed user={user} />}
-      {currentPage === 'search' && <Search onAddFilm={handleAddFilm} />}
-      {currentPage === 'myfilms' && <MyFilms user={user} />}
+      {/* Закреплённое нижнее меню */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        display: 'flex',
+        gap: '10px',
+        padding: '10px',
+        backgroundColor: '#ffffff',
+        borderTop: '1px solid #ccc',
+        boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
+        zIndex: 1000
+      }}>
+        <button
+          onClick={() => setCurrentPage('feed')}
+          style={{
+            flex: 1,
+            padding: '10px',
+            backgroundColor: currentPage === 'feed' ? '#0088cc' : '#f0f0f0',
+            color: currentPage === 'feed' ? 'white' : '#333',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: currentPage === 'feed' ? 'bold' : 'normal'
+          }}
+        >
+          Лента
+        </button>
+        <button
+          onClick={() => setCurrentPage('search')}
+          style={{
+            flex: 1,
+            padding: '10px',
+            backgroundColor: currentPage === 'search' ? '#0088cc' : '#f0f0f0',
+            color: currentPage === 'search' ? 'white' : '#333',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: currentPage === 'search' ? 'bold' : 'normal'
+          }}
+        >
+          Поиск
+        </button>
+        <button
+          onClick={() => setCurrentPage('myfilms')}
+          style={{
+            flex: 1,
+            padding: '10px',
+            backgroundColor: currentPage === 'myfilms' ? '#0088cc' : '#f0f0f0',
+            color: currentPage === 'myfilms' ? 'white' : '#333',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: currentPage === 'myfilms' ? 'bold' : 'normal'
+          }}
+        >
+          Мои фильмы
+        </button>
+      </div>
 
       {/* Модалка добавления рецензии */}
       {selectedFilm && (

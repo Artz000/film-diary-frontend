@@ -105,7 +105,6 @@ export default function Search({ onAddFilm }: SearchProps) {
 
   return (
     <div style={{ padding: '10px', color: '#333' }}>
-      <h2>Поиск фильмов</h2>
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         <input

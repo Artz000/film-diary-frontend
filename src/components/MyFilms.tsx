@@ -69,7 +69,6 @@ export default function MyFilms({ user }: MyFilmsProps) {
 
   return (
     <div style={{ padding: '10px', color: '#333' }}>
-      <h2>Мои фильмы</h2>
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
         <button
           onClick={() => setActiveTab('watched')}
