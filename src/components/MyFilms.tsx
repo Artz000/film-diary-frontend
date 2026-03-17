@@ -324,7 +324,7 @@ export default function MyFilms({ user }: MyFilmsProps) {
                         )}
                         {film.reviewId && (
                           <button
-                            onClick={() => toggleVisibility(film.reviewId, film.isPublic || false)}
+                            onClick={() => toggleVisibility(film.reviewId!, film.isPublic || false)}
                             style={{
                               padding: '5px 10px',
                               backgroundColor: film.isPublic ? '#ccc' : '#0088cc',
@@ -369,7 +369,7 @@ export default function MyFilms({ user }: MyFilmsProps) {
                         </button>
                         {film.reviewId && (
                           <button
-                            onClick={() => toggleVisibility(film.reviewId, film.isPublic || false)}
+                            onClick={() => toggleVisibility(film.reviewId!, film.isPublic || false)}
                             style={{
                               padding: '5px 10px',
                               backgroundColor: film.isPublic ? '#ccc' : '#0088cc',
