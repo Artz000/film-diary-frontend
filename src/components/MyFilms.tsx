@@ -183,7 +183,7 @@ export default function MyFilms({ user }: MyFilmsProps) {
                   </p>
                 )}
 
-                {/* КНОПКА ПУБЛИКАЦИИ — только для просмотренных фильмов */}
+                {/* Кнопка публикации — только для просмотренных фильмов */}
                 {activeTab === 'watched' && film.reviewId && (
                   <div style={{ marginTop: '10px' }}>
                     <button
@@ -201,8 +201,6 @@ export default function MyFilms({ user }: MyFilmsProps) {
                     </button>
                   </div>
                 )}
-
-                {/* Здесь можно добавить другие кнопки (например, удалить) */}
               </div>
             </div>
           ))}
