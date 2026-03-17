@@ -2,33 +2,51 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp?: {
+        ready: () => void;
+        expand: () => void;
+        initData: string;
+        initDataUnsafe?: any;
+      };
+    };
+  }
+}
+
 interface AuthProps {
   onAuth: (user: any) => void;
 }
 
 export default function Auth({ onAuth }: AuthProps) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Инициализация Telegram WebApp, если он доступен
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
+      console.log('Telegram WebApp initialized');
+    } else {
+      console.log('Not in Telegram environment');
     }
   }, []);
 
   const handleLogin = async () => {
     setLoading(true);
+    setError(null);
 
     try {
       let initData = '';
       if (window.Telegram?.WebApp) {
         initData = window.Telegram.WebApp.initData;
+        console.log('initData present:', !!initData);
       }
 
       // Если приложение открыто не в Telegram – используем заглушку для локального тестирования
       if (!initData) {
-        console.warn('Not in Telegram — using mock data for local testing');
+        console.warn('No initData – using mock user');
         onAuth({
           id: 123,
           firstName: 'Тест',
@@ -40,19 +58,17 @@ export default function Auth({ onAuth }: AuthProps) {
       }
 
       console.log('Sending auth request with initData length:', initData.length);
-
       const response = await axios.post(`${API_BASE_URL}/api/auth`, { initData });
-
       console.log('Auth response:', response.data);
       onAuth(response.data.user);
-    } catch (error: any) {
-      console.error('Auth error:', error);
-      if (error.response) {
-        alert(`Ошибка авторизации: ${error.response.data.error || 'Неизвестная ошибка'}`);
-      } else if (error.request) {
-        alert('Сервер не отвечает. Попробуйте позже.');
+    } catch (err: any) {
+      console.error('Auth error:', err);
+      if (err.response) {
+        setError(`Ошибка сервера: ${err.response.data.error || err.response.status}`);
+      } else if (err.request) {
+        setError('Сервер не отвечает. Проверьте подключение.');
       } else {
-        alert('Ошибка при отправке запроса');
+        setError('Ошибка при отправке запроса');
       }
     } finally {
       setLoading(false);
@@ -65,6 +81,9 @@ export default function Auth({ onAuth }: AuthProps) {
       <p style={{ marginBottom: '30px', color: '#666' }}>
         Войдите через Telegram, чтобы вести дневник фильмов
       </p>
+      {error && (
+        <div style={{ color: 'red', marginBottom: '20px' }}>{error}</div>
+      )}
       <button
         onClick={handleLogin}
         disabled={loading}
