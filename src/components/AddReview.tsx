@@ -31,6 +31,8 @@ export default function AddReview({ film, onSave, onCancel }: AddReviewProps) {
           tmdbId: film.id,
           title: film.title,
           posterPath: film.poster,
+          year: film.year,
+          genres: film.genres || [],
           status,
           rating: status === 'watched' ? rating : null,
           reviewText,
@@ -79,12 +81,11 @@ export default function AddReview({ film, onSave, onCancel }: AddReviewProps) {
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Статус:</label>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value as any)}
+              onChange={(e) => setStatus(e.target.value as 'watched' | 'want')}
               style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
             >
               <option value="watched">Просмотрено</option>
               <option value="want">Хочу посмотреть</option>
-              <option value="favorite">Любимое</option>
             </select>
           </div>
 

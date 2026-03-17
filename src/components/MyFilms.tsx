@@ -4,11 +4,10 @@ import { API_BASE_URL } from '../config';
 
 interface FilmItem {
   id: number;
-  title?: string;
-  filmTitle?: string;
-  name?: string;
-  year?: string;
+  title: string;
   poster?: string;
+  year?: string;
+  genres?: string[];
   status: 'watched' | 'want' | 'favorite';
   rating?: number;
   reviewText?: string;
@@ -24,44 +23,64 @@ export default function MyFilms({ user }: MyFilmsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchFilms = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await axios.get(`${API_BASE_URL}/api/users/${user.id}/films`, {
-          params: { status: activeTab },
-          headers: { 'user-id': user.id },
-        });
-        if (Array.isArray(response.data)) {
-          setFilms(response.data);
-        } else {
-          console.error('Films data is not an array:', response.data);
-          setError('Неверный формат данных от сервера');
-        }
-      } catch (err) {
-        console.error('Error fetching films:', err);
-        setError('Не удалось загрузить фильмы. Попробуйте позже.');
-      } finally {
-        setLoading(false);
+  const fetchFilms = async (status: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/users/${user.id}/films`, {
+        params: { status },
+        headers: { 'user-id': user.id },
+      });
+      if (Array.isArray(response.data)) {
+        setFilms(response.data);
+      } else {
+        console.error('Films data is not an array:', response.data);
+        setError('Неверный формат данных от сервера');
       }
-    };
+    } catch (err) {
+      console.error('Error fetching films:', err);
+      setError('Не удалось загрузить фильмы. Попробуйте позже.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (user?.id) {
-      fetchFilms();
+      fetchFilms(activeTab);
     }
   }, [user, activeTab]);
 
+  const handleStatusChange = async (film: FilmItem, newStatus: 'watched' | 'want' | 'favorite') => {
+    try {
+      await axios.patch(
+        `${API_BASE_URL}/api/films/${film.id}`,
+        { status: newStatus },
+        { headers: { 'user-id': user.id } }
+      );
+      // Обновляем список после изменения
+      fetchFilms(activeTab);
+    } catch (err) {
+      console.error('Error updating film status:', err);
+      alert('Не удалось обновить статус');
+    }
+  };
+
+  const handleDelete = async (filmId: number) => {
+    if (!confirm('Удалить фильм из коллекции?')) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/api/films/${filmId}`, {
+        headers: { 'user-id': user.id },
+      });
+      fetchFilms(activeTab);
+    } catch (err) {
+      console.error('Error deleting film:', err);
+      alert('Не удалось удалить фильм');
+    }
+  };
+
   const renderStars = (rating: number) => {
     return '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
-  };
-
-  const getTitle = (film: FilmItem): string => {
-    return film.title || film.filmTitle || film.name || 'Без названия';
-  };
-
-  const getYear = (film: FilmItem): string => {
-    return film.year ? `(${film.year})` : '';
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '20px', color: '#333' }}>Загрузка...</div>;
@@ -69,6 +88,7 @@ export default function MyFilms({ user }: MyFilmsProps) {
 
   return (
     <div style={{ padding: '10px', color: '#333' }}>
+      {/* Табы */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
         <button
           onClick={() => setActiveTab('watched')}
@@ -132,7 +152,7 @@ export default function MyFilms({ user }: MyFilmsProps) {
               {film.poster ? (
                 <img
                   src={film.poster}
-                  alt={getTitle(film)}
+                  alt={film.title}
                   style={{ width: '70px', height: '105px', objectFit: 'cover', borderRadius: '8px' }}
                 />
               ) : (
@@ -154,11 +174,14 @@ export default function MyFilms({ user }: MyFilmsProps) {
               )}
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px', flexWrap: 'wrap' }}>
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: '#000' }}>
-                    {getTitle(film)}
-                  </h3>
-                  {getYear(film) && <span style={{ fontSize: '16px', color: '#666' }}>{getYear(film)}</span>}
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: '#000' }}>{film.title}</h3>
+                  {film.year && <span style={{ fontSize: '14px', color: '#666' }}>({film.year})</span>}
                 </div>
+                {film.genres && film.genres.length > 0 && (
+                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '6px' }}>
+                    {film.genres.join(' • ')}
+                  </div>
+                )}
                 {film.rating && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                     <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#f5a623' }}>{film.rating}/5</span>
@@ -170,6 +193,41 @@ export default function MyFilms({ user }: MyFilmsProps) {
                     {film.reviewText}
                   </p>
                 )}
+                {/* Кнопки действий в зависимости от статуса */}
+                <div style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
+                  {activeTab === 'want' && (
+                    <button
+                      onClick={() => handleStatusChange(film, 'watched')}
+                      style={{ padding: '5px 10px', backgroundColor: '#0088cc', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                    >
+                      ✓ Просмотрено
+                    </button>
+                  )}
+                  {activeTab === 'watched' && (
+                    <>
+                      <button
+                        onClick={() => handleStatusChange(film, 'favorite')}
+                        style={{ padding: '5px 10px', backgroundColor: '#f5a623', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        ❤️ В любимое
+                      </button>
+                      <button
+                        onClick={() => handleDelete(film.id)}
+                        style={{ padding: '5px 10px', backgroundColor: '#e53935', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        Удалить
+                      </button>
+                    </>
+                  )}
+                  {activeTab === 'favorite' && (
+                    <button
+                      onClick={() => handleDelete(film.id)}
+                      style={{ padding: '5px 10px', backgroundColor: '#e53935', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                    >
+                      Удалить
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
