@@ -2,20 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
-useEffect(() => {
-  console.log('🔍 Telegram object exists:', !!window.Telegram);
-  console.log('🔍 WebApp object exists:', !!window.Telegram?.WebApp);
-  console.log('🔍 initData exists:', !!window.Telegram?.WebApp?.initData);
-  console.log('🔍 initData length:', window.Telegram?.WebApp?.initData?.length);
-  
-  if (window.Telegram?.WebApp) {
-    window.Telegram.WebApp.ready();
-    window.Telegram.WebApp.expand();
-  } else {
-    console.error('❌ Telegram.WebApp не найден!');
-  }
-}, []);
-
+// Расширяем глобальный интерфейс Window, чтобы TypeScript знал о Telegram.WebApp
 declare global {
   interface Window {
     Telegram?: {
@@ -24,6 +11,9 @@ declare global {
         expand: () => void;
         initData: string;
         initDataUnsafe?: any;
+        close?: () => void;
+        MainButton?: any;
+        BackButton?: any;
       };
     };
   }
@@ -38,12 +28,13 @@ export default function Auth({ onAuth }: AuthProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Проверяем наличие Telegram WebApp
+    console.log('Telegram object:', window.Telegram);
+    console.log('WebApp object:', window.Telegram?.WebApp);
+    
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
-      console.log('Telegram WebApp initialized');
-    } else {
-      console.log('Not in Telegram environment');
     }
   }, []);
 
@@ -52,33 +43,33 @@ export default function Auth({ onAuth }: AuthProps) {
     setError(null);
 
     try {
-      let initData = '';
-      if (window.Telegram?.WebApp) {
-        initData = window.Telegram.WebApp.initData;
-        console.log('initData present:', !!initData);
-      }
-
-      // Если приложение открыто не в Telegram – используем заглушку для локального тестирования
-      if (!initData) {
-        console.warn('No initData – using mock user');
-        onAuth({
-          id: 123,
-          firstName: 'Тест',
-          lastName: '',
-          username: 'test',
-        });
+      const webApp = window.Telegram?.WebApp;
+      if (!webApp) {
+        console.error('Telegram WebApp not available');
+        setError('Это приложение должно работать внутри Telegram Mini App');
         setLoading(false);
         return;
       }
 
-      console.log('Sending auth request with initData length:', initData.length);
+      const initData = webApp.initData;
+      console.log('initData length:', initData.length);
+
+      if (!initData) {
+        console.error('initData is empty');
+        setError('Не удалось получить данные авторизации');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Sending auth request...');
       const response = await axios.post(`${API_BASE_URL}/api/auth`, { initData });
+
       console.log('Auth response:', response.data);
       onAuth(response.data.user);
     } catch (err: any) {
       console.error('Auth error:', err);
       if (err.response) {
-        setError(`Ошибка сервера: ${err.response.data.error || err.response.status}`);
+        setError(`Ошибка сервера: ${err.response.data.error || 'Неизвестная ошибка'}`);
       } else if (err.request) {
         setError('Сервер не отвечает. Проверьте подключение.');
       } else {
@@ -95,9 +86,20 @@ export default function Auth({ onAuth }: AuthProps) {
       <p style={{ marginBottom: '30px', color: '#666' }}>
         Войдите через Telegram, чтобы вести дневник фильмов
       </p>
+
       {error && (
-        <div style={{ color: 'red', marginBottom: '20px' }}>{error}</div>
+        <div style={{
+          color: '#e53935',
+          marginBottom: '20px',
+          padding: '10px',
+          border: '1px solid #e53935',
+          borderRadius: '4px',
+          backgroundColor: '#ffebee'
+        }}>
+          {error}
+        </div>
       )}
+
       <button
         onClick={handleLogin}
         disabled={loading}
