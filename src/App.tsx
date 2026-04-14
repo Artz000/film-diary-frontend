@@ -5,12 +5,13 @@ import MyFilms from './components/MyFilms';
 import AddReview from './components/AddReview';
 import Login from './components/Login';
 import Register from './components/Register';
+import Recommendations from './components/Recommendations';
 import type { Film } from './types';
 import api from './api';
 
 function App() {
   const [user, setUser] = useState<any>(null);
-  const [currentPage, setCurrentPage] = useState<'feed' | 'search' | 'myfilms'>('feed');
+  const [currentPage, setCurrentPage] = useState<'feed' | 'search' | 'myfilms' | 'recommendations'>('feed');
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
 
@@ -56,6 +57,7 @@ function App() {
         {currentPage === 'feed' && <Feed />}
         {currentPage === 'search' && <Search onAddFilm={handleAddFilm} />}
         {currentPage === 'myfilms' && <MyFilms />}
+        {currentPage === 'recommendations' && <Recommendations onAddFilm={handleAddFilm} />}
       </div>
 
       <div style={{
@@ -73,6 +75,7 @@ function App() {
         <button onClick={() => setCurrentPage('feed')}>Лента</button>
         <button onClick={() => setCurrentPage('search')}>Поиск</button>
         <button onClick={() => setCurrentPage('myfilms')}>Мои фильмы</button>
+        <button onClick={() => setCurrentPage('recommendations')}>Рекомендации</button>
       </div>
 
       {selectedFilm && (
