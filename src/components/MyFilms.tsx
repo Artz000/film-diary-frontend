@@ -8,7 +8,7 @@ interface FilmItem {
   poster?: string;
   year?: string;
   genres?: string[];
-  status: 'watched' | 'want' | 'favorite';
+  status: string;
   rating?: number;
   reviewText?: string;
   isPublic?: boolean;
@@ -23,11 +23,17 @@ export default function MyFilms() {
   const [hoverRating, setHoverRating] = useState<{ [key: number]: number }>({});
   const [currentRating, setCurrentRating] = useState<{ [key: number]: number }>({});
 
-  const fetchFilms = async (status: string) => {
+  const fetchFilms = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get(`/api/users/me/films`, { params: { status } });
+      let url = '/api/users/me/films';
+      const params: any = {};
+      if (activeTab === 'watched') params.status = 'watched';
+      else if (activeTab === 'want') params.status = 'want';
+      else if (activeTab === 'favorite') params.favorite = true;
+
+      const res = await api.get(url, { params });
       if (Array.isArray(res.data)) {
         setFilms(res.data);
         const ratings: { [key: number]: number } = {};
@@ -45,7 +51,7 @@ export default function MyFilms() {
   };
 
   useEffect(() => {
-    fetchFilms(activeTab);
+    fetchFilms();
   }, [activeTab]);
 
   const updateRating = async (filmId: number, reviewId: number, newRating: number) => {
@@ -55,24 +61,24 @@ export default function MyFilms() {
     } catch (err) { console.error(err); }
   };
 
-  const handleStatusChange = async (film: FilmItem, newStatus: 'watched' | 'favorite') => {
+  const handleStatusChange = async (film: FilmItem, newStatus: string) => {
     try {
       await api.patch(`/api/films/${film.id}`, { status: newStatus });
-      fetchFilms(activeTab);
+      fetchFilms();
     } catch (err) { console.error(err); }
   };
 
-  const toggleFavorite = async (film: FilmItem) => {
+  const toggleFavorite = async (film: FilmItem, isFavorite: boolean) => {
     try {
-      await api.patch(`/api/films/${film.id}`, { isFavorite: !film.isFavorite });
-      fetchFilms(activeTab);
+      await api.patch(`/api/films/${film.id}/favorite`, { isFavorite });
+      fetchFilms();
     } catch (err) { console.error(err); }
   };
 
   const toggleVisibility = async (reviewId: number, current: boolean) => {
     try {
       await api.patch(`/api/reviews/${reviewId}`, { isPublic: !current });
-      fetchFilms(activeTab);
+      fetchFilms();
     } catch (err) { console.error(err); }
   };
 
@@ -80,7 +86,7 @@ export default function MyFilms() {
     if (!confirm('Удалить фильм из коллекции?')) return;
     try {
       await api.delete(`/api/films/${filmId}`);
-      fetchFilms(activeTab);
+      fetchFilms();
     } catch (err) { console.error(err); }
   };
 
@@ -125,7 +131,7 @@ export default function MyFilms() {
                 <div style={{ flex: 1 }}>
                   <h3 style={{ margin: '0 0 4px 0', color: '#000' }}>{film.title} {film.year && <span style={{ fontSize: '14px', color: '#666' }}>({film.year})</span>}</h3>
                   {film.genres?.length && <div style={{ fontSize: '12px', color: '#666', marginBottom: '6px' }}>{film.genres.join(' • ')}</div>}
-                  {film.status === 'watched' && (
+                  {film.rating !== undefined && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                       <span style={{ fontWeight: 'bold', color: '#f5a623' }}>{displayRating}/5</span>
                       {renderStars(film.id, displayRating || 0, film.reviewId)}
@@ -141,7 +147,7 @@ export default function MyFilms() {
                     )}
                     {film.status === 'watched' && (
                       <>
-                        <button onClick={() => handleStatusChange(film, 'favorite')} style={{ padding: '5px 10px', background: '#f5a623', color: 'white', border: 'none', borderRadius: '4px' }}>В любимое</button>
+                        <button onClick={() => toggleFavorite(film, true)} style={{ padding: '5px 10px', background: '#f5a623', color: 'white', border: 'none', borderRadius: '4px' }}>В любимое</button>
                         {film.reviewId && (
                           <button onClick={() => toggleVisibility(film.reviewId!, film.isPublic || false)} style={{ padding: '5px 10px', background: film.isPublic ? '#ccc' : '#0088cc', color: film.isPublic ? '#333' : 'white', border: 'none', borderRadius: '4px' }}>
                             {film.isPublic ? 'Скрыть из ленты' : 'Опубликовать'}
@@ -152,7 +158,7 @@ export default function MyFilms() {
                     )}
                     {film.status === 'favorite' && (
                       <>
-                        <button onClick={() => toggleFavorite(film)} style={{ padding: '5px 10px', background: '#e53935', color: 'white', border: 'none', borderRadius: '4px' }}>Убрать из любимых</button>
+                        <button onClick={() => toggleFavorite(film, false)} style={{ padding: '5px 10px', background: '#e53935', color: 'white', border: 'none', borderRadius: '4px' }}>Убрать из любимых</button>
                         <button onClick={() => handleDelete(film.id)} style={{ padding: '5px 10px', background: '#e53935', color: 'white', border: 'none', borderRadius: '4px' }}>Удалить</button>
                       </>
                     )}
