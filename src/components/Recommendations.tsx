@@ -17,17 +17,20 @@ export default function Recommendations({ onAddFilm }: RecommendationsProps) {
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState<string>('');
   const [feedbackLoading, setFeedbackLoading] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchRecommendations = async (refresh = false) => {
     setLoading(true);
+    setError(null);
     try {
       const response = await api.get('/api/recommendations', {
         params: { limit: 20, refresh },
       });
-      setRecommendations(response.data.recommendations);
-      setSource(response.data.source);
-    } catch (error) {
-      console.error('Error fetching recommendations:', error);
+      setRecommendations(response.data.recommendations || []);
+      setSource(response.data.source || '');
+    } catch (err) {
+      console.error('Error fetching recommendations:', err);
+      setError('Не удалось загрузить рекомендации');
     } finally {
       setLoading(false);
     }
@@ -67,6 +70,10 @@ export default function Recommendations({ onAddFilm }: RecommendationsProps) {
         </div>
       </div>
     );
+  }
+
+  if (error) {
+    return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>;
   }
 
   return (
@@ -152,11 +159,13 @@ export default function Recommendations({ onAddFilm }: RecommendationsProps) {
                   </div>
                 )}
 
-                <div style={{ fontSize: '12px', color: '#0088cc', marginBottom: '10px' }}>
-                  {rec.reasons.join(' • ')}
-                </div>
+                {rec.reasons && rec.reasons.length > 0 && (
+                  <div style={{ fontSize: '12px', color: '#0088cc', marginBottom: '10px' }}>
+                    {rec.reasons.join(' • ')}
+                  </div>
+                )}
 
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
                   <button
                     onClick={() => handleFeedback(rec.film.id, 'like')}
                     disabled={feedbackLoading === rec.film.id}
@@ -212,7 +221,7 @@ export default function Recommendations({ onAddFilm }: RecommendationsProps) {
                   width: '40px',
                   height: '40px',
                   borderRadius: '50%',
-                  background: `conic-gradient(#4caf50 ${rec.score * 100}%, #e0e0e0 0)`,
+                  background: `conic-gradient(#4caf50 ${(rec.score || 0) * 100}%, #e0e0e0 0)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -222,7 +231,7 @@ export default function Recommendations({ onAddFilm }: RecommendationsProps) {
                 }}
               >
                 <span style={{ backgroundColor: 'white', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {Math.round(rec.score * 100)}%
+                  {Math.round((rec.score || 0) * 100)}%
                 </span>
               </div>
             </div>
