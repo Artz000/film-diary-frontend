@@ -1,12 +1,13 @@
+// src/components/Login.tsx
 import { useState } from 'react';
 import api from '../api';
 
 interface LoginProps {
-  onLogin: (user: any, token: string) => void;
-  onSwitchToRegister: () => void;
+  onLogin: (userData: any, token: string) => void;
+  // onSwitchToRegister больше не нужен
 }
 
-export default function Login({ onLogin, onSwitchToRegister }: LoginProps) {
+export default function Login({ onLogin }: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -32,14 +33,19 @@ export default function Login({ onLogin, onSwitchToRegister }: LoginProps) {
       {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '10px' }}>
-          <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%', padding: '8px' }} />
+          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ width: '100%', padding: '8px' }} />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} required style={{ width: '100%', padding: '8px' }} />
+          <input type="password" placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ width: '100%', padding: '8px' }} />
         </div>
-        <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px' }}>{loading ? 'Вход...' : 'Войти'}</button>
+        <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px' }}>
+          {loading ? 'Вход...' : 'Войти'}
+        </button>
       </form>
-      <p style={{ marginTop: '10px' }}>Нет аккаунта? <button onClick={onSwitchToRegister} style={{ background: 'none', border: 'none', color: '#0088cc', cursor: 'pointer' }}>Зарегистрироваться</button></p>
+      <p style={{ marginTop: '10px' }}>
+        Нет аккаунта?{' '}
+        <a href="#" onClick={(e) => { e.preventDefault(); window.location.href = '/register'; }}>Зарегистрироваться</a>
+      </p>
     </div>
   );
 }

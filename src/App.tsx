@@ -10,7 +10,6 @@ import api from './api';
 
 function App() {
   const [user, setUser] = useState<any>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<'feed' | 'search' | 'myfilms'>('feed');
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -19,25 +18,18 @@ function App() {
     const storedToken = localStorage.getItem('filmdiary_token');
     if (storedToken) {
       api.get('/api/auth/me')
-        .then(res => {
-          setUser(res.data);
-          setToken(storedToken);
-        })
-        .catch(() => {
-          localStorage.removeItem('filmdiary_token');
-        });
+        .then(res => setUser(res.data))
+        .catch(() => localStorage.removeItem('filmdiary_token'));
     }
   }, []);
 
   const handleAuth = (userData: any, newToken: string) => {
     setUser(userData);
-    setToken(newToken);
     localStorage.setItem('filmdiary_token', newToken);
   };
 
   const handleLogout = () => {
     setUser(null);
-    setToken(null);
     localStorage.removeItem('filmdiary_token');
   };
 
@@ -49,27 +41,47 @@ function App() {
     return isRegistering ? (
       <Register onRegister={handleAuth} />
     ) : (
-      <Login onLogin={handleAuth} onSwitchToRegister={() => setIsRegistering(true)} />
+      <Login onLogin={handleAuth} />
     );
   }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '10px', textAlign: 'right' }}>
+      <div style={{ padding: '10px', textAlign: 'right', backgroundColor: '#f5f5f5' }}>
         <span>Привет, {user.name || user.email}!</span>
-        <button onClick={handleLogout} style={{ marginLeft: '10px' }}>Выйти</button>
+        <button onClick={handleLogout} style={{ marginLeft: '10px', padding: '5px 10px' }}>Выйти</button>
       </div>
+
       <div style={{ flex: 1, paddingBottom: '70px' }}>
         {currentPage === 'feed' && <Feed />}
         {currentPage === 'search' && <Search onAddFilm={handleAddFilm} />}
         {currentPage === 'myfilms' && <MyFilms />}
       </div>
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', gap: '10px', padding: '10px', backgroundColor: '#fff', borderTop: '1px solid #ccc' }}>
-        <button onClick={() => setCurrentPage('feed')}>Лента</button>
-        <button onClick={() => setCurrentPage('search')}>Поиск</button>
-        <button onClick={() => setCurrentPage('myfilms')}>Мои фильмы</button>
+
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        display: 'flex',
+        gap: '10px',
+        padding: '10px',
+        backgroundColor: '#fff',
+        borderTop: '1px solid #ccc',
+        zIndex: 1000,
+      }}>
+        <button onClick={() => setCurrentPage('feed')} style={{ flex: 1, padding: '10px' }}>Лента</button>
+        <button onClick={() => setCurrentPage('search')} style={{ flex: 1, padding: '10px' }}>Поиск</button>
+        <button onClick={() => setCurrentPage('myfilms')} style={{ flex: 1, padding: '10px' }}>Мои фильмы</button>
       </div>
-      {selectedFilm && <AddReview film={selectedFilm} onSave={handleSaveReview} onCancel={handleCancelReview} />}
+
+      {selectedFilm && (
+        <AddReview
+          film={selectedFilm}
+          onSave={handleSaveReview}
+          onCancel={handleCancelReview}
+        />
+      )}
     </div>
   );
 }
