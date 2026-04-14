@@ -15,17 +15,17 @@ function App() {
   const [isRegistering, setIsRegistering] = useState(false);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('filmdiary_token');
-    if (storedToken) {
+    const token = localStorage.getItem('filmdiary_token');
+    if (token) {
       api.get('/api/auth/me')
         .then(res => setUser(res.data))
         .catch(() => localStorage.removeItem('filmdiary_token'));
     }
   }, []);
 
-  const handleAuth = (userData: any, newToken: string) => {
+  const handleAuth = (userData: any, token: string) => {
     setUser(userData);
-    localStorage.setItem('filmdiary_token', newToken);
+    localStorage.setItem('filmdiary_token', token);
   };
 
   const handleLogout = () => {
@@ -39,9 +39,9 @@ function App() {
 
   if (!user) {
     return isRegistering ? (
-      <Register onRegister={handleAuth} />
+      <Register onRegister={handleAuth} onSwitchToLogin={() => setIsRegistering(false)} />
     ) : (
-      <Login onLogin={handleAuth} />
+      <Login onLogin={handleAuth} onSwitchToRegister={() => setIsRegistering(true)} />
     );
   }
 
@@ -70,9 +70,9 @@ function App() {
         borderTop: '1px solid #ccc',
         zIndex: 1000,
       }}>
-        <button onClick={() => setCurrentPage('feed')} style={{ flex: 1, padding: '10px' }}>Лента</button>
-        <button onClick={() => setCurrentPage('search')} style={{ flex: 1, padding: '10px' }}>Поиск</button>
-        <button onClick={() => setCurrentPage('myfilms')} style={{ flex: 1, padding: '10px' }}>Мои фильмы</button>
+        <button onClick={() => setCurrentPage('feed')}>Лента</button>
+        <button onClick={() => setCurrentPage('search')}>Поиск</button>
+        <button onClick={() => setCurrentPage('myfilms')}>Мои фильмы</button>
       </div>
 
       {selectedFilm && (
