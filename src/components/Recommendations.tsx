@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
-import { Film } from '../types';
+import type { Film } from '../types';
 
 interface Recommendation {
   film: Film;
