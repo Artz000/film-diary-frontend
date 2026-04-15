@@ -1,25 +1,25 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
 
-interface StatsData {
+interface StatisticsData {
   totalWatched: number;
   totalWant: number;
   totalFavorite: number;
-  avgRating: number;
-  timeline: { label: string; count: number }[];
-  topGenres: { name: string; count: number }[];
+  averageRating: number;
+  monthlyActivity: { month: string; count: number }[];
+  genreStats: { genre: string; count: number }[];
 }
 
-export default function Stats() {
-  const [stats, setStats] = useState<StatsData | null>(null);
+export default function Statistics() {
+  const [stats, setStats] = useState<StatisticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await api.get('/api/users/me/stats');
-        setStats(res.data);
+        const response = await api.get('/api/statistics');
+        setStats(response.data);
       } catch (err) {
         console.error('Error fetching stats:', err);
         setError('Не удалось загрузить статистику');
@@ -30,74 +30,47 @@ export default function Stats() {
     fetchStats();
   }, []);
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '20px' }}>Загрузка статистики...</div>;
-  if (error) return <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>{error}</div>;
+  if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Загрузка статистики...</div>;
+  if (error) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>;
   if (!stats) return null;
-
-  // Максимальное значение для шкалы timeline
-  const maxCount = Math.max(...stats.timeline.map(t => t.count), 1);
 
   return (
     <div style={{ padding: '10px' }}>
       <h2>Моя статистика</h2>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '25px' }}>
-        <div style={{ background: '#f0f0f0', padding: '15px', borderRadius: '12px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{stats.totalWatched}</div>
-          <div style={{ fontSize: '14px', color: '#666' }}>Просмотрено</div>
+      <div style={{ display: 'grid', gap: '15px' }}>
+        <div style={{ background: 'white', padding: '15px', borderRadius: '12px' }}>
+          <h3>Общее</h3>
+          <p>Просмотрено: {stats.totalWatched}</p>
+          <p>Хочу посмотреть: {stats.totalWant}</p>
+          <p>Любимые: {stats.totalFavorite}</p>
+          <p>Средний рейтинг: {stats.averageRating.toFixed(1)} / 5</p>
         </div>
-        <div style={{ background: '#f0f0f0', padding: '15px', borderRadius: '12px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{stats.totalWant}</div>
-          <div style={{ fontSize: '14px', color: '#666' }}>Хочу посмотреть</div>
-        </div>
-        <div style={{ background: '#f0f0f0', padding: '15px', borderRadius: '12px', textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{stats.totalFavorite}</div>
-          <div style={{ fontSize: '14px', color: '#666' }}>Любимые</div>
-        </div>
-      </div>
 
-      <div style={{ background: '#f0f0f0', padding: '15px', borderRadius: '12px', marginBottom: '25px', textAlign: 'center' }}>
-        <div style={{ fontSize: '18px', fontWeight: 'bold' }}>Средний рейтинг</div>
-        <div style={{ fontSize: '32px', color: '#f5a623' }}>{stats.avgRating} / 5</div>
-      </div>
-
-      <div style={{ marginBottom: '25px' }}>
-        <h3>Просмотры по месяцам</h3>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', height: '150px', marginTop: '15px' }}>
-          {stats.timeline.map((item, idx) => (
-            <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{
-                height: `${(item.count / maxCount) * 120}px`,
-                width: '100%',
-                backgroundColor: '#0088cc',
-                borderRadius: '4px 4px 0 0',
-                transition: 'height 0.3s'
-              }} />
-              <div style={{ fontSize: '12px', marginTop: '5px' }}>{item.label}</div>
-              <div style={{ fontSize: '10px', color: '#666' }}>{item.count}</div>
-            </div>
-          ))}
+        <div style={{ background: 'white', padding: '15px', borderRadius: '12px' }}>
+          <h3>Активность по месяцам</h3>
+          {stats.monthlyActivity && stats.monthlyActivity.length > 0 ? (
+            <ul>
+              {stats.monthlyActivity.map((item, idx) => (
+                <li key={idx}>{item.month}: {item.count} фильмов</li>
+              ))}
+            </ul>
+          ) : (
+            <p>Нет данных</p>
+          )}
         </div>
-      </div>
 
-      <div>
-        <h3>Любимые жанры</h3>
-        {stats.topGenres.length === 0 ? (
-          <p>Нет данных</p>
-        ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '10px' }}>
-            {stats.topGenres.map((genre, idx) => (
-              <div key={idx} style={{
-                background: '#e0e0e0',
-                padding: '5px 12px',
-                borderRadius: '20px',
-                fontSize: '14px'
-              }}>
-                {genre.name} ({genre.count})
-              </div>
-            ))}
-          </div>
-        )}
+        <div style={{ background: 'white', padding: '15px', borderRadius: '12px' }}>
+          <h3>Любимые жанры</h3>
+          {stats.genreStats && stats.genreStats.length > 0 ? (
+            <ul>
+              {stats.genreStats.map((genre, idx) => (
+                <li key={idx}>{genre.genre}: {genre.count} фильмов</li>
+              ))}
+            </ul>
+          ) : (
+            <p>Нет данных</p>
+          )}
+        </div>
       </div>
     </div>
   );
