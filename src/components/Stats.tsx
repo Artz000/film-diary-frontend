@@ -17,12 +17,11 @@ export default function Statistics() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      console.log('Запрос статистики')
       try {
         const response = await api.get('/api/statistics');
         setStats(response.data);
       } catch (err) {
-        console.error('Error fetching stats:', err);
+        console.error(err);
         setError('Не удалось загрузить статистику');
       } finally {
         setLoading(false);
@@ -41,36 +40,32 @@ export default function Statistics() {
       <div style={{ display: 'grid', gap: '15px' }}>
         <div style={{ background: 'white', padding: '15px', borderRadius: '12px' }}>
           <h3>Общее</h3>
-          <p>Просмотрено: {stats.totalWatched}</p>
-          <p>Хочу посмотреть: {stats.totalWant}</p>
-          <p>Любимые: {stats.totalFavorite}</p>
-          <p>Средний рейтинг: {stats.averageRating.toFixed(1)} / 5</p>
+          <p>📺 Просмотрено: {stats.totalWatched}</p>
+          <p>⏳ Хочу посмотреть: {stats.totalWant}</p>
+          <p>❤️ Любимые: {stats.totalFavorite}</p>
+          <p>⭐ Средний рейтинг: {stats.averageRating?.toFixed(1) ?? 0} / 5</p>
         </div>
 
         <div style={{ background: 'white', padding: '15px', borderRadius: '12px' }}>
           <h3>Активность по месяцам</h3>
-          {stats.monthlyActivity && stats.monthlyActivity.length > 0 ? (
+          {stats.monthlyActivity?.length > 0 ? (
             <ul>
               {stats.monthlyActivity.map((item, idx) => (
                 <li key={idx}>{item.month}: {item.count} фильмов</li>
               ))}
             </ul>
-          ) : (
-            <p>Нет данных</p>
-          )}
+          ) : <p>Нет данных</p>}
         </div>
 
         <div style={{ background: 'white', padding: '15px', borderRadius: '12px' }}>
           <h3>Любимые жанры</h3>
-          {stats.genreStats && stats.genreStats.length > 0 ? (
+          {stats.genreStats?.length > 0 ? (
             <ul>
-              {stats.genreStats.map((genre, idx) => (
-                <li key={idx}>{genre.genre}: {genre.count} фильмов</li>
+              {stats.genreStats.map((g, idx) => (
+                <li key={idx}>{g.genre}: {g.count} фильмов</li>
               ))}
             </ul>
-          ) : (
-            <p>Нет данных</p>
-          )}
+          ) : <p>Нет данных</p>}
         </div>
       </div>
     </div>
