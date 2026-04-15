@@ -17,6 +17,7 @@ export default function Statistics() {
 
   useEffect(() => {
     const fetchStats = async () => {
+      console.log('Запрос статистики')
       try {
         const response = await api.get('/api/statistics');
         setStats(response.data);
