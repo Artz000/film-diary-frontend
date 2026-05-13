@@ -5,15 +5,13 @@ import MyFilms from './components/MyFilms';
 import AddReview from './components/AddReview';
 import Login from './components/Login';
 import Register from './components/Register';
+import Statistics from './components/Stats';
 import type { Film } from './types';
 import api from './api';
-import Stats from './components/Stats';
-import Recommendations from './components/Recommendations';
-
 
 function App() {
   const [user, setUser] = useState<any>(null);
-  const [currentPage, setCurrentPage] = useState<'feed' | 'search' | 'myfilms' | 'stats' | 'recommendations'>('feed');
+  const [currentPage, setCurrentPage] = useState<'feed' | 'search' | 'myfilms' | 'statistics'>('feed');
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
 
@@ -59,27 +57,29 @@ function App() {
         {currentPage === 'feed' && <Feed />}
         {currentPage === 'search' && <Search onAddFilm={handleAddFilm} />}
         {currentPage === 'myfilms' && <MyFilms />}
-        {currentPage === 'stats' && <Stats />}
-        {currentPage === 'recommendations' && <Recommendations onAddFilm={handleAddFilm} />}
+        {currentPage === 'statistics' && <Statistics />}
       </div>
 
+      {/* Нижнее меню (закреплено) */}
       <div style={{
         position: 'fixed',
         bottom: 0,
         left: 0,
         right: 0,
         display: 'flex',
-        gap: '10px',
+        flexWrap: 'wrap',
+        gap: '8px',
         padding: '10px',
-        backgroundColor: '#fff',
+        backgroundColor: '#ffffff',
         borderTop: '1px solid #ccc',
+        boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
         zIndex: 1000,
+        justifyContent: 'center'
       }}>
-        <button onClick={() => setCurrentPage('feed')}>Лента</button>
-        <button onClick={() => setCurrentPage('search')}>Поиск</button>
-        <button onClick={() => setCurrentPage('myfilms')}>Мои фильмы</button>
-        <button onClick={() => setCurrentPage('stats')}>Статистика</button>
-        <button onClick={() => setCurrentPage('recommendations')}>Рекомендации</button>
+        <button onClick={() => setCurrentPage('feed')} style={{ flex: '1 0 auto', minWidth: '70px', padding: '10px' }}>Лента</button>
+        <button onClick={() => setCurrentPage('search')} style={{ flex: '1 0 auto', minWidth: '70px', padding: '10px' }}>Поиск</button>
+        <button onClick={() => setCurrentPage('myfilms')} style={{ flex: '1 0 auto', minWidth: '70px', padding: '10px' }}>Мои фильмы</button>
+        <button onClick={() => setCurrentPage('statistics')} style={{ flex: '1 0 auto', minWidth: '70px', padding: '10px' }}>Статистика</button>
       </div>
 
       {selectedFilm && (
