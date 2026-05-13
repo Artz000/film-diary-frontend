@@ -8,11 +8,12 @@ import Register from './components/Register';
 import type { Film } from './types';
 import api from './api';
 import Stats from './components/Stats';
+import Recommendations from './components/Recommendations';
 
 
 function App() {
   const [user, setUser] = useState<any>(null);
-  const [currentPage, setCurrentPage] = useState<'feed' | 'search' | 'myfilms' | 'stats'>('feed');
+  const [currentPage, setCurrentPage] = useState<'feed' | 'search' | 'myfilms' | 'stats' | 'recommendations'>('feed');
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
 
@@ -59,6 +60,7 @@ function App() {
         {currentPage === 'search' && <Search onAddFilm={handleAddFilm} />}
         {currentPage === 'myfilms' && <MyFilms />}
         {currentPage === 'stats' && <Stats />}
+        {currentPage === 'recommendations' && <Recommendations onAddFilm={handleAddFilm} />}
       </div>
 
       <div style={{
@@ -77,6 +79,7 @@ function App() {
         <button onClick={() => setCurrentPage('search')}>Поиск</button>
         <button onClick={() => setCurrentPage('myfilms')}>Мои фильмы</button>
         <button onClick={() => setCurrentPage('stats')}>Статистика</button>
+        <button onClick={() => setCurrentPage('recommendations')}>Рекомендации</button>
       </div>
 
       {selectedFilm && (
