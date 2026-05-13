@@ -6,12 +6,14 @@ import AddReview from './components/AddReview';
 import Login from './components/Login';
 import Register from './components/Register';
 import Statistics from './components/Stats';
+import Recommendations from './components/Recommendations';
 import type { Film } from './types';
 import api from './api';
+import './index.css'; // важно, чтобы подключились глобальные стили
 
 function App() {
   const [user, setUser] = useState<any>(null);
-  const [currentPage, setCurrentPage] = useState<'feed' | 'search' | 'myfilms' | 'statistics'>('feed');
+  const [currentPage, setCurrentPage] = useState<'feed' | 'search' | 'myfilms' | 'statistics' | 'recommendations'>('feed');
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
 
@@ -39,56 +41,44 @@ function App() {
   const handleCancelReview = () => setSelectedFilm(null);
 
   if (!user) {
-    return isRegistering ? (
-      <Register onRegister={handleAuth} onSwitchToLogin={() => setIsRegistering(false)} />
-    ) : (
-      <Login onLogin={handleAuth} onSwitchToRegister={() => setIsRegistering(true)} />
-    );
+    return isRegistering ? <Register onRegister={handleAuth} onSwitchToLogin={() => setIsRegistering(false)} /> : <Login onLogin={handleAuth} onSwitchToRegister={() => setIsRegistering(true)} />;
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '10px', textAlign: 'right', backgroundColor: '#f5f5f5' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', overflow: 'hidden' }}>
+      <div style={{ flexShrink: 0, padding: '10px', textAlign: 'right', backgroundColor: '#f5f5f5' }}>
         <span>Привет, {user.name || user.email}!</span>
         <button onClick={handleLogout} style={{ marginLeft: '10px', padding: '5px 10px' }}>Выйти</button>
       </div>
 
-      <div style={{ flex: 1, paddingBottom: '70px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '60px' }}>
         {currentPage === 'feed' && <Feed />}
         {currentPage === 'search' && <Search onAddFilm={handleAddFilm} />}
         {currentPage === 'myfilms' && <MyFilms />}
         {currentPage === 'statistics' && <Statistics />}
+        {currentPage === 'recommendations' && <Recommendations onAddFilm={handleAddFilm} />}
       </div>
 
-      {/* Нижнее меню (закреплено) */}
       <div style={{
         position: 'fixed',
         bottom: 0,
         left: 0,
         right: 0,
         display: 'flex',
-        flexWrap: 'wrap',
-        gap: '8px',
+        gap: '10px',
         padding: '10px',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#fff',
         borderTop: '1px solid #ccc',
-        boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
         zIndex: 1000,
-        justifyContent: 'center'
       }}>
-        <button onClick={() => setCurrentPage('feed')} style={{ flex: '1 0 auto', minWidth: '70px', padding: '10px' }}>Лента</button>
-        <button onClick={() => setCurrentPage('search')} style={{ flex: '1 0 auto', minWidth: '70px', padding: '10px' }}>Поиск</button>
-        <button onClick={() => setCurrentPage('myfilms')} style={{ flex: '1 0 auto', minWidth: '70px', padding: '10px' }}>Мои фильмы</button>
-        <button onClick={() => setCurrentPage('statistics')} style={{ flex: '1 0 auto', minWidth: '70px', padding: '10px' }}>Статистика</button>
+        <button onClick={() => setCurrentPage('feed')}>Лента</button>
+        <button onClick={() => setCurrentPage('search')}>Поиск</button>
+        <button onClick={() => setCurrentPage('myfilms')}>Мои фильмы</button>
+        <button onClick={() => setCurrentPage('statistics')}>Статистика</button>
+        <button onClick={() => setCurrentPage('recommendations')}>Рекомендации</button>
       </div>
 
-      {selectedFilm && (
-        <AddReview
-          film={selectedFilm}
-          onSave={handleSaveReview}
-          onCancel={handleCancelReview}
-        />
-      )}
+      {selectedFilm && <AddReview film={selectedFilm} onSave={handleSaveReview} onCancel={handleCancelReview} />}
     </div>
   );
 }
