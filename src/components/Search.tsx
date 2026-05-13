@@ -7,12 +7,6 @@ interface SearchProps {
   onAddFilm: (film: Film) => void;
 }
 
-interface Recommendation {
-  film: Film;
-  score: number;
-  reasons: string[];
-}
-
 export default function Search({ onAddFilm }: SearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Film[]>([]);
@@ -22,12 +16,12 @@ export default function Search({ onAddFilm }: SearchProps) {
   const [hasMore, setHasMore] = useState(false);
 
   // Состояния для рекомендаций
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
   const [recLoading, setRecLoading] = useState(false);
 
   // Загрузка рекомендаций при монтировании
   useEffect(() => {
-    const fetchRecommendations = async () => {
+    const fetchRecs = async () => {
       setRecLoading(true);
       try {
         const res = await api.get('/api/recommendations?limit=10');
@@ -38,7 +32,7 @@ export default function Search({ onAddFilm }: SearchProps) {
         setRecLoading(false);
       }
     };
-    fetchRecommendations();
+    fetchRecs();
   }, []);
 
   const searchFilms = async (searchQuery: string, pageNum: number = 1, append: boolean = false) => {
@@ -101,74 +95,6 @@ export default function Search({ onAddFilm }: SearchProps) {
 
   return (
     <div style={{ padding: '10px', color: '#333' }}>
-      {/* Блок рекомендаций (показывается, если нет поискового запроса) */}
-      {!query && (
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '15px' }}>Рекомендации для вас</h3>
-          {recLoading && <div>Загрузка рекомендаций...</div>}
-          {!recLoading && recommendations.length === 0 && (
-            <div style={{ color: '#666' }}>Пока нет рекомендаций. Добавьте больше оценок.</div>
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {recommendations.map((rec) => (
-              <div
-                key={rec.film.id}
-                style={{
-                  display: 'flex',
-                  gap: '12px',
-                  padding: '12px',
-                  border: '1px solid #eee',
-                  borderRadius: '8px',
-                  background: 'white',
-                  alignItems: 'center',
-                }}
-              >
-                {rec.film.poster ? (
-                  <img
-                    src={rec.film.poster}
-                    alt={rec.film.title}
-                    style={{ width: '60px', height: '90px', objectFit: 'cover', borderRadius: '4px' }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: '60px',
-                      height: '90px',
-                      background: '#f0f0f0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '12px',
-                      color: '#999',
-                    }}
-                  >
-                    нет фото
-                  </div>
-                )}
-                <div style={{ flex: 1 }}>
-                  <div>
-                    <strong>{rec.film.title}</strong>
-                    {rec.film.year && <span style={{ fontSize: '14px', color: '#666', marginLeft: '5px' }}>({rec.film.year})</span>}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>
-                    {rec.film.genres?.slice(0, 3).join(' • ') || 'нет жанров'}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#0088cc', marginTop: '4px' }}>
-                    Совпадение: {Math.min(Math.round(rec.score * 100), 100)}%
-                  </div>
-                </div>
-                <button
-                  onClick={() => onAddFilm(rec.film)}
-                  style={{ padding: '6px 12px', backgroundColor: '#00a86b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                >
-                  Добавить
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Поле поиска */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         <input
@@ -205,7 +131,28 @@ export default function Search({ onAddFilm }: SearchProps) {
           {hasMore && <div style={{ textAlign: 'center', marginTop: '20px' }}><button onClick={loadMore} disabled={loading}>Загрузить ещё</button></div>}
         </>
       )}
-      {!loading && query && results.length === 0 && !error && <div style={{ textAlign: 'center', marginTop: '20px' }}>Ничего не найдено</div>}
+
+      {/* Рекомендации (показываются только если нет поискового запроса и нет результатов) */}
+      {!loading && !query && (
+        <div style={{ marginTop: '20px' }}>
+          <h3>Рекомендации для вас</h3>
+          {recLoading && <div>Загрузка рекомендаций...</div>}
+          {!recLoading && recommendations.length === 0 && <div>Пока нет рекомендаций. Добавьте больше оценок.</div>}
+          <div style={{ display: 'grid', gap: '10px' }}>
+            {recommendations.map((rec: any) => (
+              <div key={rec.film.id} style={{ display: 'flex', gap: '10px', border: '1px solid #ccc', padding: '10px', borderRadius: '8px', background: 'white' }}>
+                {rec.film.poster ? <img src={rec.film.poster} alt={rec.film.title} style={{ width: '50px', height: '75px', objectFit: 'cover', borderRadius: '4px' }} /> : <div style={{ width: '50px', height: '75px', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>нет</div>}
+                <div style={{ flex: 1 }}>
+                  <div><strong>{rec.film.title}</strong> {rec.film.year && <span style={{ fontSize: '14px', color: '#666' }}>({rec.film.year})</span>}</div>
+                  <div>Совпадение: {Math.min(Math.round(rec.score * 100), 100)}%</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>{rec.reasons?.join(', ')}</div>
+                  <button onClick={() => onAddFilm(rec.film)} style={{ marginTop: '5px', padding: '5px 10px', backgroundColor: '#0088cc', color: 'white', border: 'none', borderRadius: '4px' }}>Добавить</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
